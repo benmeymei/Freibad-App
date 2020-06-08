@@ -1,8 +1,13 @@
-import 'package:freibad_app/models/person.dart';
+import 'package:flutter/foundation.dart';
 
 class Request {
-  final List<Person> participant;
+  final String id;
+  final List<String> persons;
   final DateTime startTime;
 
-  Request({this.participant, this.startTime});
+  Request({
+    @required this.id,
+    @required this.persons,
+    @required this.startTime,
+  });
 }

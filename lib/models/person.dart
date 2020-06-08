@@ -1,4 +1,7 @@
+import 'package:flutter/foundation.dart';
+
 class Person {
+  final String id;
   final String forename;
   final String name;
   final String streetName;
@@ -9,14 +12,15 @@ class Person {
   final String email;
 
   Person({
-    this.forename,
-    this.name,
-    this.streetName,
-    this.streeNumber,
-    this.postCode,
-    this.city,
-    this.phoneNumber,
-    this.email,
+    @required this.id,
+    @required this.forename,
+    @required this.name,
+    @required this.streetName,
+    @required this.streeNumber,
+    @required this.postCode,
+    @required this.city,
+    @required this.phoneNumber,
+    @required this.email,
   });
 }
 

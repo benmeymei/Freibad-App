@@ -1,11 +1,17 @@
-import 'package:freibad_app/models/person.dart';
+import 'package:flutter/foundation.dart';
 
 class Session implements Comparable<Session> {
-  final Map<Person, String> participant;
+  final String id;
+  final List<Map<String, String>> persons;
   final DateTime start;
   final DateTime end;
 
-  Session({this.participant, this.start, this.end});
+  Session({
+    @required this.id,
+    @required this.persons,
+    @required this.start,
+    @required this.end,
+  });
 
   @override
   int compareTo(Session other) {
