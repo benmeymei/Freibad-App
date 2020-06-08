@@ -21,8 +21,8 @@ class CustomBottomNavigationBar extends StatelessWidget {
           title: Text('Codes'),
         ),
         BottomNavigationBarItem(
-          icon: Icon(Icons.calendar_today),
-          title: Text('Reserve'),
+          icon: Icon(Icons.date_range),
+          title: Text('Pick'),
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.settings),

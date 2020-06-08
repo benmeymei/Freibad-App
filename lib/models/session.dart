@@ -2,13 +2,13 @@ import 'package:flutter/foundation.dart';
 
 class Session implements Comparable<Session> {
   final String id;
-  final List<Map<String, String>> persons;
+  final List<Map<String, String>> personsAndCodes;
   final DateTime start;
   final DateTime end;
 
   Session({
     @required this.id,
-    @required this.persons,
+    @required this.personsAndCodes,
     @required this.start,
     @required this.end,
   });

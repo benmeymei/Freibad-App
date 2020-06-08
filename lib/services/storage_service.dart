@@ -119,7 +119,7 @@ class TestData {
       ...{
         Session(
           id: 'session$i',
-          persons: [
+          personsAndCodes: [
             {
               'person': 'person0',
               'code': 'QWERT$i',

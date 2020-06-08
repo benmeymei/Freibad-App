@@ -1,6 +1,6 @@
 import 'package:flutter/foundation.dart';
 
-class Request {
+class Request implements Comparable<Request> {
   final String id;
   final List<String> persons;
   final DateTime startTime;
@@ -10,4 +10,9 @@ class Request {
     @required this.persons,
     @required this.startTime,
   });
+
+  @override
+  int compareTo(Request other) {
+    return startTime.compareTo(other.startTime);
+  }
 }
