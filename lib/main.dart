@@ -18,9 +18,14 @@ class MyApp extends StatelessWidget {
         title: 'Freibad',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          primaryColor: Color.fromRGBO(246, 231, 29, 1),
+          primarySwatch: Colors.yellow,
           accentColor: Color.fromRGBO(128, 128, 128, 1),
+          cardColor: Color.fromRGBO(50, 50, 50, 1),
           backgroundColor: Color.fromRGBO(20, 20, 25, 1),
+          textTheme: Theme.of(context).textTheme.apply(
+                bodyColor: Colors.white,
+                displayColor: Colors.white,
+              ),
         ),
         home: HomeScreen(),
       ),

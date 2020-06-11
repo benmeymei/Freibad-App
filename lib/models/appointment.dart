@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/session.dart';
 
-class Request extends Session {
-  Request({
+class Appointment extends Session {
+  Appointment({
     @required String id,
-    @required List<Map<String, String>> accessList, //following this scheme [{'person': 'personId'}]
+    @required List<Map<String, String>> accessList, //following this scheme [{'person': 'personId', 'code': 'accessCode'}]
     @required DateTime startTime,
     @required DateTime endTime,
   }) : super(

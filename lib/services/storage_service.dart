@@ -1,18 +1,18 @@
+import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
-import 'package:freibad_app/models/session.dart';
 
 abstract class StorageService {
   Future<List<Person>> getPersons();
-  Future<List<Session>> getSessions();
+  Future<List<Appointment>> getAppointment();
   Future<List<Request>> getRequests();
 
   Future<void> addPerson(Person person);
-  Future<void> addSession(Session session);
+  Future<void> addAppointment(Appointment session);
   Future<void> addRequest(Request request);
 
   Future<void> deletePerson(String personID);
-  Future<void> deleteSession(String sessionID);
+  Future<void> deleteAppointment(String appointmentID);
   Future<void> deleteRequest(String requestID);
 }
 
@@ -21,7 +21,7 @@ class LocalStorage extends StorageService {
     return null;
   }
 
-  Future<List<Session>> getSessions() {
+  Future<List<Appointment>> getAppointment() {
     return null;
   }
 
@@ -33,7 +33,7 @@ class LocalStorage extends StorageService {
     return null;
   }
 
-  Future<void> addSession(Session session) {
+  Future<void> addAppointment(Appointment session) {
     return null;
   }
 
@@ -45,7 +45,7 @@ class LocalStorage extends StorageService {
     return null;
   }
 
-  Future<void> deleteSession(String sessionID) {
+  Future<void> deleteAppointment(String appointmentID) {
     return null;
   }
 
@@ -59,8 +59,8 @@ class FakeLocalStorage extends StorageService {
     return Future.value(TestData.persons);
   }
 
-  Future<List<Session>> getSessions() {
-    return Future.value(TestData.sessions);
+  Future<List<Appointment>> getAppointment() {
+    return Future.value(TestData.appointment);
   }
 
   Future<List<Request>> getRequests() {
@@ -71,7 +71,7 @@ class FakeLocalStorage extends StorageService {
     return Future.delayed(Duration(milliseconds: 100));
   }
 
-  Future<void> addSession(Session session) {
+  Future<void> addAppointment(Appointment appointment) {
     return Future.delayed(Duration(milliseconds: 100));
   }
 
@@ -83,7 +83,7 @@ class FakeLocalStorage extends StorageService {
     return Future.delayed(Duration(milliseconds: 100));
   }
 
-  Future<void> deleteSession(String sessionID) {
+  Future<void> deleteAppointment(String appointmentID) {
     return Future.delayed(Duration(milliseconds: 100));
   }
 
@@ -94,7 +94,7 @@ class FakeLocalStorage extends StorageService {
 
 class TestData {
   static const AMOUNT_PERSONS = 2;
-  static const AMOUNT_SESSIONS = 4;
+  static const AMOUNT_APPOINTMENTS = 4;
   static const AMOUNT_REQUESTS = 4;
 
   static final List<Person> persons = [
@@ -114,24 +114,24 @@ class TestData {
       }.toList(),
   ];
 
-  static final sessions = [
-    for (int i = 0; i < AMOUNT_SESSIONS; i++)
+  static final appointment = [
+    for (int i = 0; i < AMOUNT_APPOINTMENTS; i++)
       ...{
-        Session(
+        Appointment(
           id: 'session$i',
-          personsAndCodes: [
+          accessList: [
             {
               'person': 'person0',
-              'code': 'QWERT$i',
+              'code': 'code$i',
             },
             if (i % 2 == 0)
               {
                 'person': 'person1',
-                'code': 'QWERTZ$i',
+                'code': 'code$i',
               },
           ],
-          start: DateTime.now(),
-          end: DateTime.now(),
+          startTime: DateTime.now(),
+          endTime: DateTime.now(),
         )
       }.toList(),
   ];
@@ -141,11 +141,17 @@ class TestData {
       ...{
         Request(
           id: 'request$i',
-          persons: [
-            'person0',
-            if (i % 2 == 1) 'person1',
+          accessList: [
+            {
+              'person': 'person0',
+            },
+            if (i % 2 == 1)
+              {
+                'person': 'person1',
+              },
           ],
           startTime: DateTime.now(),
+          endTime: DateTime.now(),
         )
       }.toList(),
   ];

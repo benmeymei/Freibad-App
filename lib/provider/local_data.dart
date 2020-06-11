@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
 import 'package:freibad_app/models/session.dart';
@@ -6,11 +7,11 @@ import 'package:freibad_app/services/storage_service.dart';
 
 class LocalData with ChangeNotifier {
   List<Person> _persons;
-  List<Session> _sessions;
+  List<Session> _appointments;
   List<Request> _requests;
 
   List<Person> get persons => [..._persons];
-  List<Session> get sessions => [..._sessions];
+  List<Session> get appointments => [..._appointments];
   List<Request> get requests => [..._requests];
 
   FakeLocalStorage db =
@@ -18,7 +19,7 @@ class LocalData with ChangeNotifier {
 
   Future<void> fetchAndSetData() async {
     _persons = await db.getPersons();
-    _sessions = await db.getSessions();
+    _appointments = await db.getAppointment();
     _requests = await db.getRequests();
     notifyListeners();
     print('fetching and setting data, finished');
@@ -32,16 +33,18 @@ class LocalData with ChangeNotifier {
     try {
       db.addPerson(person);
       _persons.add(person);
+      print('added person'); 
     } catch (exception) {
       print(exception);
       throw exception;
     }
   }
 
-  void addSession(Session session) async {
+  void addAppointment(Appointment appointment) async {
     try {
-      db.addSession(session);
-      _sessions.add(session);
+      db.addAppointment(appointment);
+      _appointments.add(appointment);
+      print('added appointment'); 
     } catch (exception) {
       print(exception);
       throw exception;
@@ -52,6 +55,7 @@ class LocalData with ChangeNotifier {
     try {
       db.addRequest(request);
       _requests.add(request);
+      print('added request');    
     } catch (exception) {
       print(exception);
       throw exception;
@@ -63,17 +67,36 @@ class LocalData with ChangeNotifier {
       db.deletePerson(personId);
       _requests
           .removeAt(_requests.indexWhere((element) => element.id == personId));
+          print('deleted person');    
     } catch (exception) {
       print(exception);
       throw exception;
     }
   }
 
-  void deleteSession(String sessionId) {
+  void deleteSession(Session session) {
     try {
-      db.deleteSession(sessionId);
-      _sessions
-          .removeAt(_requests.indexWhere((element) => element.id == sessionId));
+      if (session is Appointment) {
+        deleteAppointment(session.id);
+      } else if (session is Request) {
+        deleteRequest(session.id);
+      }
+      else {
+        throw 'Add support to the Database for the children of Sessions';
+      }
+    } catch (exception) {
+      print(exception);
+      throw exception;
+    }
+  }
+
+  void deleteAppointment(String appointmentId) {
+    //TODO unsubscribe from Website
+    try {
+      db.deleteAppointment(appointmentId);
+      _appointments.removeAt(
+          _appointments.indexWhere((element) => element.id == appointmentId));
+      print('deleted appointment');    
     } catch (exception) {
       print(exception);
       throw exception;
@@ -85,6 +108,7 @@ class LocalData with ChangeNotifier {
       db.deleteRequest(requestId);
       _requests
           .removeAt(_requests.indexWhere((element) => element.id == requestId));
+          print('deleted request');    
     } catch (exception) {
       print(exception);
       throw exception;

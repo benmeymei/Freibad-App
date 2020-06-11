@@ -1,20 +1,20 @@
 import 'package:flutter/foundation.dart';
 
-class Session implements Comparable<Session> {
+abstract class Session implements Comparable<Session> {
   final String id;
-  final List<Map<String, String>> personsAndCodes;
-  final DateTime start;
-  final DateTime end;
+  final List<Map<String, String>> accessList;
+  final DateTime startTime;
+  final DateTime endTime;
 
   Session({
     @required this.id,
-    @required this.personsAndCodes,
-    @required this.start,
-    @required this.end,
+    @required this.accessList,
+    @required this.startTime,
+    @required this.endTime,
   });
 
   @override
   int compareTo(Session other) {
-    return start.compareTo(other.start);
+    return startTime.compareTo(other.startTime);
   }
 }

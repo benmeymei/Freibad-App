@@ -14,11 +14,11 @@ class _CodesSubscreenState extends State<CodesSubscreen> {
 
   @override
   Widget build(BuildContext context) {
-    sessions = Provider.of<LocalData>(context, listen: true).sessions;
-    return Container(
-      child: ListView(
-        children: sessions.map((session) => SessionPresenter(session)).toList(),
-      ),
+    sessions = Provider.of<LocalData>(context).appointments;
+    sessions.addAll(Provider.of<LocalData>(context).requests);
+    sessions.sort();
+    return ListView(
+      children: sessions.map((session) => SessionPresenter(session)).toList(),
     );
   }
 }
