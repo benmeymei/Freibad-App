@@ -8,6 +8,7 @@ abstract class StorageService {
   Future<List<Request>> getRequests();
 
   Future<void> addPerson(Person person);
+  Future<void> updatePerson(Person person);
   Future<void> addAppointment(Appointment session);
   Future<void> addRequest(Request request);
 
@@ -30,6 +31,10 @@ class LocalStorage extends StorageService {
   }
 
   Future<void> addPerson(Person person) {
+    return null;
+  }
+
+  Future<void> updatePerson(Person person) {
     return null;
   }
 
@@ -71,6 +76,10 @@ class FakeLocalStorage extends StorageService {
     return Future.delayed(Duration(milliseconds: 100));
   }
 
+  Future<void> updatePerson(Person person) {
+    return Future.delayed(Duration(milliseconds: 100));
+  }
+
   Future<void> addAppointment(Appointment appointment) {
     return Future.delayed(Duration(milliseconds: 100));
   }
@@ -108,7 +117,7 @@ class TestData {
           name: 'Mustermann$i',
           phoneNumber: '+0123456789',
           postCode: 12345,
-          streeNumber: '',
+          streetNumber: '$i',
           streetName: 'Musterstraße',
         )
       }.toList(),
@@ -141,6 +150,7 @@ class TestData {
       ...{
         Request(
           id: 'request$i',
+          hasFailed: (i % 2 == 1),
           accessList: [
             {
               'person': 'person0',

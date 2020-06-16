@@ -33,45 +33,84 @@ class LocalData with ChangeNotifier {
     try {
       db.addPerson(person);
       _persons.add(person);
-      print('added person'); 
+      print('added person');
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
+  }
+
+  void updatePerson({
+    @required String id,
+    String forename,
+    String name,
+    String streetName,
+    String streetNumber,
+    int postCode,
+    String city,
+    String phoneNumber,
+    String email,
+  }) async {
+    Person currPers = findPersonById(id);
+    Person newPers = Person(
+      id: id,
+      forename: forename ?? currPers.forename,
+      name: name ?? currPers.name,
+      streetName: streetName ?? currPers.streetName,
+      streetNumber: streetNumber ?? currPers.streetNumber,
+      postCode: postCode ?? currPers.postCode,
+      city: city ?? currPers.city,
+      phoneNumber: phoneNumber ?? currPers.phoneNumber,
+      email: email ?? currPers.email,
+    );
+    try {
+      db.updatePerson(newPers);
+      int pos = _persons.indexWhere((element) => element.id == id);
+      _persons.replaceRange(pos, pos + 1, [newPers]);
+      print('updated person');
+    } catch (exception) {
+      print(exception);
+      throw exception;
+    }
+    notifyListeners();
   }
 
   void addAppointment(Appointment appointment) async {
     try {
       db.addAppointment(appointment);
       _appointments.add(appointment);
-      print('added appointment'); 
+      print('added appointment');
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
   }
 
   void addRequest(Request request) async {
     try {
       db.addRequest(request);
       _requests.add(request);
-      print('added request');    
+      print('added request');
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
   }
 
   void deletePerson(String personId) {
     try {
       db.deletePerson(personId);
-      _requests
-          .removeAt(_requests.indexWhere((element) => element.id == personId));
-          print('deleted person');    
+      _persons
+          .removeAt(_persons.indexWhere((element) => element.id == personId));
+      print('deleted person');
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
   }
 
   void deleteSession(Session session) {
@@ -80,14 +119,14 @@ class LocalData with ChangeNotifier {
         deleteAppointment(session.id);
       } else if (session is Request) {
         deleteRequest(session.id);
-      }
-      else {
+      } else {
         throw 'Add support to the Database for the children of Sessions';
       }
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
   }
 
   void deleteAppointment(String appointmentId) {
@@ -96,11 +135,12 @@ class LocalData with ChangeNotifier {
       db.deleteAppointment(appointmentId);
       _appointments.removeAt(
           _appointments.indexWhere((element) => element.id == appointmentId));
-      print('deleted appointment');    
+      print('deleted appointment');
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
   }
 
   void deleteRequest(String requestId) {
@@ -108,10 +148,11 @@ class LocalData with ChangeNotifier {
       db.deleteRequest(requestId);
       _requests
           .removeAt(_requests.indexWhere((element) => element.id == requestId));
-          print('deleted request');    
+      print('deleted request');
     } catch (exception) {
       print(exception);
       throw exception;
     }
+    notifyListeners();
   }
 }

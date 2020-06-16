@@ -5,7 +5,7 @@ class Person {
   final String forename;
   final String name;
   final String streetName;
-  final String streeNumber; //can be 3a
+  final String streetNumber; //can be 3a
   final int postCode;
   final String city;
   final String phoneNumber;
@@ -16,11 +16,10 @@ class Person {
     @required this.forename,
     @required this.name,
     @required this.streetName,
-    @required this.streeNumber,
+    @required this.streetNumber,
     @required this.postCode,
     @required this.city,
     @required this.phoneNumber,
     @required this.email,
   });
 }
-

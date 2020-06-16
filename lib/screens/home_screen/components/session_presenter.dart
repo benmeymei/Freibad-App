@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:freibad_app/models/person.dart';
+import 'package:freibad_app/screens/home_screen/components/person_detail_dialog.dart';
 
 import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
 
 import 'package:freibad_app/models/session.dart';
 import 'package:freibad_app/models/appointment.dart';
@@ -13,7 +16,7 @@ class SessionPresenter extends StatefulWidget {
 
   SessionPresenter(this.session) : isAppointment = session is Appointment {
     if (!isAppointment && !(session is Request)) {
-      throw 'children of a Session should only be from an Appointment (class) or a Request (class), diffrent children might cause problem to the SessionPresenter';
+      throw 'children of a Session should only be from an Appointment (class) or a Request (class), diffrent children might cause problems to the SessionPresenter';
     }
   }
 
@@ -24,6 +27,17 @@ class SessionPresenter extends StatefulWidget {
 class _SessionPresenterState extends State<SessionPresenter> {
   List<Map<String, dynamic>> accessList = [];
   bool isInitState = true;
+  String date;
+  String startTime;
+  String endTime;
+
+  @override
+  void initState() {
+    date = DateFormat.MMMMEEEEd().format(widget.session.startTime);
+    startTime = DateFormat.Hm().format(widget.session.startTime);
+    endTime = DateFormat.Hm().format(widget.session.endTime);
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
@@ -46,8 +60,8 @@ class _SessionPresenterState extends State<SessionPresenter> {
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(widget.session.id),
-      onDismissed: (direction) =>
-          Provider.of<LocalData>(context, listen: false).deleteSession(widget.session),
+      onDismissed: (direction) => Provider.of<LocalData>(context, listen: false)
+          .deleteSession(widget.session),
       confirmDismiss: (direction) => showDialog(
         context: context,
         barrierDismissible: true,
@@ -60,12 +74,35 @@ class _SessionPresenterState extends State<SessionPresenter> {
             borderRadius: BorderRadius.circular(15.0),
           ),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.all(10.0),
             child: Container(
-              height: 120,
+              height: 100,
               child: Column(
                 children: <Widget>[
-                  Text(widget.session.id)
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: <Widget>[
+                      showSessionStatus(28),
+                      Text(
+                        '$startTime to $endTime',
+                        style: TextStyle(fontSize: 28),
+                      ),
+                      Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          Text(
+                            '$date',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                          Text(
+                            'Weather',
+                            style: TextStyle(fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  showAccessList(context),
                 ],
               ),
             ),
@@ -77,7 +114,6 @@ class _SessionPresenterState extends State<SessionPresenter> {
 
   AlertDialog buildAlertDialog(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Theme.of(context).cardColor,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(15),
       ),
@@ -93,6 +129,92 @@ class _SessionPresenterState extends State<SessionPresenter> {
           child: Text('Yes!'),
         ),
       ],
+    );
+  }
+
+  Icon showSessionStatus(double size) {
+    if (widget.isAppointment)
+      return Icon(
+        Icons.done,
+        color: Colors.green,
+        size: size,
+      );
+    var tmpRequest = widget.session as Request;
+    if (tmpRequest.hasFailed)
+      return Icon(
+        Icons.close,
+        color: Colors.red,
+        size: size,
+      );
+    else
+      return Icon(
+        Icons.access_time,
+        color: Colors.yellow,
+        size: size,
+      );
+  }
+
+  Container showAccessList(BuildContext context) {
+    List<Widget> accessListItems = widget.session.accessList
+        .map((accessItem) => getAccessListItem(accessItem, context))
+        .toList();
+    return Container(
+      padding: EdgeInsets.all(5),
+      child: Wrap(children: accessListItems),
+    );
+  }
+
+  Widget getAccessListItem(Map<String, dynamic> accessItem, context) {
+    String personId = accessItem['person'];
+    Person person = Provider.of<LocalData>(context).findPersonById(personId);
+    bool hasCode = widget.isAppointment;
+    String code;
+    if (hasCode) code = accessItem['code'];
+
+    return Padding(
+      padding: EdgeInsets.only(left: 6, right: 6, top: 1, bottom: 1),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          GestureDetector(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (_) => PersonDetailDialog(personId: personId, ),
+              );
+            },
+            child: Text(
+              '${person.forename}',
+              style: TextStyle(fontSize: 20),
+            ),
+          ),
+          if (hasCode)
+            GestureDetector(
+              onTap: () => showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  title: Text(code),
+                  content: Text(
+                      '${person.forename} ${person.name} has the code: $code'),
+                  actions: <Widget>[
+                    FlatButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: Text('Ok!'),
+                    ),
+                  ],
+                ),
+              ),
+              child: Text(
+                ': $code',
+                style: TextStyle(fontSize: 20),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
