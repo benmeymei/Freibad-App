@@ -25,6 +25,10 @@ dependencies:
     sdk: flutter
   provider: ^4.1.3
   intl: ^0.16.1
+  date_picker_timeline:
+    git:
+      url: https://github.com/Atomycon/DatePickerTimelineFlutter.git
+
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.

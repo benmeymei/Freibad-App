@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/data_manager.dart';
 import 'package:freibad_app/screens/home_screen/components/custom_bottom_navigation_bar.dart';
 import 'package:freibad_app/screens/home_screen/subscreens/codes_subscreen.dart';
 import 'package:freibad_app/screens/home_screen/subscreens/pick_subscreen.dart';
@@ -25,7 +25,7 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void didChangeDependencies() {
     if (isInitState) {
-      getLocalData = Provider.of<LocalData>(context).fetchAndSetData();
+      getLocalData = Provider.of<DataManager>(context).fetchAndSetData();
       isInitState = false;
     }
     super.didChangeDependencies();

@@ -8,7 +8,7 @@ import 'package:intl/intl.dart';
 import 'package:freibad_app/models/session.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/request.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/data_manager.dart';
 
 class SessionPresenter extends StatefulWidget {
   final Session session;
@@ -33,7 +33,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
 
   @override
   void initState() {
-    date = DateFormat.MMMMEEEEd().format(widget.session.startTime);
+    date = DateFormat('EEEE, d LLLL').format(widget.session.startTime);
     startTime = DateFormat.Hm().format(widget.session.startTime);
     endTime = DateFormat.Hm().format(widget.session.endTime);
     super.initState();
@@ -45,7 +45,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
       for (var i in widget.session.accessList) {
         accessList.add(
           {
-            'person': Provider.of<LocalData>(context, listen: false)
+            'person': Provider.of<DataManager>(context, listen: false)
                 .findPersonById(i['person']),
             if (widget.isAppointment) 'code': i['code'],
           },
@@ -60,7 +60,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(widget.session.id),
-      onDismissed: (direction) => Provider.of<LocalData>(context, listen: false)
+      onDismissed: (direction) => Provider.of<DataManager>(context, listen: false)
           .deleteSession(widget.session),
       confirmDismiss: (direction) => showDialog(
         context: context,
@@ -166,7 +166,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
 
   Widget getAccessListItem(Map<String, dynamic> accessItem, context) {
     String personId = accessItem['person'];
-    Person person = Provider.of<LocalData>(context).findPersonById(personId);
+    Person person = Provider.of<DataManager>(context).findPersonById(personId);
     bool hasCode = widget.isAppointment;
     String code;
     if (hasCode) code = accessItem['code'];

@@ -51,7 +51,6 @@ class _CustomTextFieldState extends State<CustomTextField> {
       keyboardType: widget.keyboardType,
       validator: widget.validator,
       decoration: InputDecoration(
-        
         labelText: widget.labelText,
         labelStyle: TextStyle(
           color: _focusNode.hasFocus

@@ -5,7 +5,7 @@ import 'package:freibad_app/models/request.dart';
 import 'package:freibad_app/models/session.dart';
 import 'package:freibad_app/services/storage_service.dart';
 
-class LocalData with ChangeNotifier {
+class DataManager with ChangeNotifier {
   List<Person> _persons;
   List<Session> _appointments;
   List<Request> _requests;

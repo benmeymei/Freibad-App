@@ -64,6 +64,15 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "0.1.3"
+  date_picker_timeline:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: HEAD
+      resolved-ref: "3f69ffeff9fd031b485dc21303f9d64a922d5e19"
+      url: "https://github.com/Atomycon/DatePickerTimelineFlutter.git"
+    source: git
+    version: "1.2.0"
   flutter:
     dependency: "direct main"
     description: flutter

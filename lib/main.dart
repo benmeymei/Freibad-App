@@ -1,9 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:flutter/services.dart';
+import 'package:freibad_app/provider/data_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:freibad_app/screens/home_screen/home_screen.dart';
 
 void main() {
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Color.fromRGBO(20, 20, 25, 1),
+    systemNavigationBarColor: Color.fromRGBO(20, 20, 25, 1),
+  ));
   runApp(MyApp());
 }
 
@@ -13,7 +18,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => LocalData(),
+          create: (_) => DataManager(),
         ),
       ],
       child: MaterialApp(
