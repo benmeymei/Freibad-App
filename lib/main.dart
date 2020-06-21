@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:freibad_app/provider/data_manager.dart';
 import 'package:provider/provider.dart';
+import 'package:freibad_app/provider/data_manager.dart';
 import 'package:freibad_app/screens/home_screen/home_screen.dart';
 
 void main() {

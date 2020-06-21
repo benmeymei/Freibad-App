@@ -70,7 +70,7 @@ class FakeLocalStorage extends StorageService {
 
   Future<List<Request>> getRequests() {
     return Future.value(TestData.request);
-  }
+  } 
 
   Future<void> addPerson(Person person) {
     return Future.delayed(Duration(milliseconds: 100));
