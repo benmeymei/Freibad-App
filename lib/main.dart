@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/weather_data.dart';
 import 'package:provider/provider.dart';
-import 'package:freibad_app/provider/data_manager.dart';
 import 'package:freibad_app/screens/home_screen/home_screen.dart';
 
 void main() {
@@ -18,7 +19,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => DataManager(),
+          create: (_) => LocalData(),
+        ),
+        ChangeNotifierProvider(
+          create: (_) => WeatherData(),
         ),
       ],
       child: MaterialApp(

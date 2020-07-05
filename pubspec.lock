@@ -69,7 +69,7 @@ packages:
     description:
       path: "."
       ref: HEAD
-      resolved-ref: a17910d54b8195277dc99ddac375564d55e9a29b
+      resolved-ref: "510d6d442736b65bf2aa8a9d53d1a5061696ee8a"
       url: "https://github.com/Atomycon/DatePickerTimelineFlutter.git"
     source: git
     version: "1.2.0"
@@ -228,6 +228,13 @@ packages:
       url: "https://pub.dartlang.org"
     source: hosted
     version: "1.1.6"
+  uuid:
+    dependency: "direct main"
+    description:
+      name: uuid
+      url: "https://pub.dartlang.org"
+    source: hosted
+    version: "2.1.0"
   vector_math:
     dependency: transitive
     description:

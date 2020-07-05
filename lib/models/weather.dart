@@ -2,12 +2,14 @@ import 'package:flutter/material.dart';
 
 class Weather {
   final IconData skyIcon;
-  final double temp;
+  final double maxTemp;
+  final DateTime maxTempTime;
   final String tempUnit;
 
   Weather({
     @required this.skyIcon,
-    @required this.temp,
+    @required this.maxTemp,
+    @required this.maxTempTime,
     @required this.tempUnit,
   });
 }

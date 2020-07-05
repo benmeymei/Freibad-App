@@ -1,11 +1,13 @@
+import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
 import 'package:freibad_app/models/session.dart';
 import 'package:freibad_app/services/storage_service.dart';
+import 'package:uuid/uuid.dart';
 
-class DataManager with ChangeNotifier {
+class LocalData with ChangeNotifier {
   List<Person> _persons;
   List<Session> _appointments;
   List<Request> _requests;
@@ -17,23 +19,44 @@ class DataManager with ChangeNotifier {
   FakeLocalStorage db =
       FakeLocalStorage(); //use LocalStorage for production, use FakeLocalStorage for testing
 
+  Uuid uuid = Uuid(); // for creating unique ids
+
   Future<void> fetchAndSetData() async {
     _persons = await db.getPersons();
     _appointments = await db.getAppointment();
     _requests = await db.getRequests();
     notifyListeners();
-    print('fetching and setting data, finished');
   }
 
   Person findPersonById(String id) {
     return _persons.firstWhere((element) => element.id == id);
   }
 
-  void addPerson(Person person) async {
+  void addPerson({
+    @required String forename,
+    @required String name,
+    @required String streetName,
+    @required String streetNumber,
+    @required int postCode,
+    @required String city,
+    @required String phoneNumber,
+    @required String email,
+  }) async {
+    Person person = Person(
+        id: uuid.v1(),
+        forename: forename,
+        name: name,
+        streetName: streetName,
+        streetNumber: streetNumber,
+        postCode: postCode,
+        city: city,
+        phoneNumber: phoneNumber,
+        email: email);
+
     try {
       db.addPerson(person);
       _persons.add(person);
-      print('added person');
+      developer.log('added person');
     } catch (exception) {
       print(exception);
       throw exception;
@@ -52,49 +75,69 @@ class DataManager with ChangeNotifier {
     String phoneNumber,
     String email,
   }) async {
-    Person currPers = findPersonById(id);
-    Person newPers = Person(
+    Person currentPerson = findPersonById(id);
+    Person updatedPerson = Person(
       id: id,
-      forename: forename ?? currPers.forename,
-      name: name ?? currPers.name,
-      streetName: streetName ?? currPers.streetName,
-      streetNumber: streetNumber ?? currPers.streetNumber,
-      postCode: postCode ?? currPers.postCode,
-      city: city ?? currPers.city,
-      phoneNumber: phoneNumber ?? currPers.phoneNumber,
-      email: email ?? currPers.email,
+      forename: forename ?? currentPerson.forename,
+      name: name ?? currentPerson.name,
+      streetName: streetName ?? currentPerson.streetName,
+      streetNumber: streetNumber ?? currentPerson.streetNumber,
+      postCode: postCode ?? currentPerson.postCode,
+      city: city ?? currentPerson.city,
+      phoneNumber: phoneNumber ?? currentPerson.phoneNumber,
+      email: email ?? currentPerson.email,
     );
     try {
-      db.updatePerson(newPers);
+      db.updatePerson(updatedPerson);
       int pos = _persons.indexWhere((element) => element.id == id);
-      _persons.replaceRange(pos, pos + 1, [newPers]);
-      print('updated person');
+      _persons.replaceRange(pos, pos + 1, [updatedPerson]);
+      developer.log('updated person');
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();
   }
 
-  void addAppointment(Appointment appointment) async {
+  void addAppointment({
+    @required List<Map<String, String>> accessList,
+    @required DateTime startTime,
+    @required DateTime endTime,
+  }) async {
+    Appointment appointment = Appointment(
+      id: uuid.v1(),
+      accessList: accessList,
+      startTime: startTime,
+      endTime: endTime,
+    );
     try {
       db.addAppointment(appointment);
       _appointments.add(appointment);
-      print('added appointment');
+      developer.log('added appointment');
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();
   }
 
-  void addRequest(Request request) async {
+  void addRequest({
+    @required List<Map<String, String>> accessList,
+    @required DateTime startTime,
+    @required DateTime endTime,
+  }) async {
+    Request request = Request(
+        id: uuid.v1(),
+        accessList: accessList,
+        startTime: startTime,
+        endTime: endTime,
+        hasFailed: false);
     try {
       db.addRequest(request);
       _requests.add(request);
-      print('added request');
+      developer.log('added request');
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();
@@ -105,9 +148,9 @@ class DataManager with ChangeNotifier {
       db.deletePerson(personId);
       _persons
           .removeAt(_persons.indexWhere((element) => element.id == personId));
-      print('deleted person');
+      developer.log('deleted person');
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();
@@ -123,7 +166,7 @@ class DataManager with ChangeNotifier {
         throw 'Add support to the Database for the children of Sessions';
       }
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();
@@ -135,9 +178,9 @@ class DataManager with ChangeNotifier {
       db.deleteAppointment(appointmentId);
       _appointments.removeAt(
           _appointments.indexWhere((element) => element.id == appointmentId));
-      print('deleted appointment');
+      developer.log('deleted appointment');
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();
@@ -148,9 +191,9 @@ class DataManager with ChangeNotifier {
       db.deleteRequest(requestId);
       _requests
           .removeAt(_requests.indexWhere((element) => element.id == requestId));
-      print('deleted request');
+      developer.log('deleted request');
     } catch (exception) {
-      print(exception);
+      developer.log(exception);
       throw exception;
     }
     notifyListeners();

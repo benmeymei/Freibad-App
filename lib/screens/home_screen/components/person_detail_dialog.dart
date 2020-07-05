@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:freibad_app/models/person.dart';
-import 'package:freibad_app/provider/data_manager.dart';
+import 'package:freibad_app/provider/local_data.dart';
 import 'package:freibad_app/screens/home_screen/components/custom_textField.dart';
 import 'package:provider/provider.dart';
 
@@ -38,7 +38,7 @@ class _PersonDetailDialogState extends State<PersonDetailDialog> {
     if (isInit) {
       if (widget.hasPerson) {
         person =
-            Provider.of<DataManager>(context).findPersonById(widget.personId);
+            Provider.of<LocalData>(context).findPersonById(widget.personId);
       }
       forenameController = TextEditingController(
         text: widget.hasPerson ? person.forename : '',
@@ -230,19 +230,35 @@ class _PersonDetailDialogState extends State<PersonDetailDialog> {
                               ),
                               onPressed: () {
                                 if (_formKey.currentState.validate()) {
-                                  Provider.of<DataManager>(context, listen: false)
-                                      .updatePerson(
-                                    id: person.id,
-                                    city: cityController.text,
-                                    email: emailController.text,
-                                    forename: forenameController.text,
-                                    name: nameController.text,
-                                    phoneNumber: phoneNumberController.text,
-                                    postCode:
-                                        int.parse(postCodeController.text),
-                                    streetName: streetNameController.text,
-                                    streetNumber: streetNumberController.text,
-                                  );
+                                  if (widget.hasPerson)
+                                    Provider.of<LocalData>(context,
+                                            listen: false)
+                                        .updatePerson(
+                                      id: person.id,
+                                      city: cityController.text,
+                                      email: emailController.text,
+                                      forename: forenameController.text,
+                                      name: nameController.text,
+                                      phoneNumber: phoneNumberController.text,
+                                      postCode:
+                                          int.parse(postCodeController.text),
+                                      streetName: streetNameController.text,
+                                      streetNumber: streetNumberController.text,
+                                    );
+                                  else
+                                    Provider.of<LocalData>(context,
+                                            listen: false)
+                                        .addPerson(
+                                      city: cityController.text,
+                                      email: emailController.text,
+                                      forename: forenameController.text,
+                                      name: nameController.text,
+                                      phoneNumber: phoneNumberController.text,
+                                      postCode:
+                                          int.parse(postCodeController.text),
+                                      streetName: streetNameController.text,
+                                      streetNumber: streetNumberController.text,
+                                    );
                                   Navigator.of(context).pop();
                                 }
                               },

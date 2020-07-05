@@ -27,6 +27,7 @@ dependencies:
   intl: ^0.16.1
   http: ^0.12.1
   mdi: ^3.0.0
+  uuid: ^2.1.0
   date_picker_timeline:
     git:
       url: https://github.com/Atomycon/DatePickerTimelineFlutter.git

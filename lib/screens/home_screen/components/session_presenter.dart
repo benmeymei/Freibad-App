@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freibad_app/models/person.dart';
+import 'package:freibad_app/models/weather.dart';
+import 'package:freibad_app/provider/local_data.dart';
 import 'package:freibad_app/screens/home_screen/components/person_detail_dialog.dart';
 
 import 'package:provider/provider.dart';
@@ -8,13 +10,14 @@ import 'package:intl/intl.dart';
 import 'package:freibad_app/models/session.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/request.dart';
-import 'package:freibad_app/provider/data_manager.dart';
 
 class SessionPresenter extends StatefulWidget {
   final Session session;
+  final Weather weather;
   final bool isAppointment;
 
-  SessionPresenter(this.session) : isAppointment = session is Appointment {
+  SessionPresenter(this.session, this.weather)
+      : isAppointment = session is Appointment {
     if (!isAppointment && !(session is Request)) {
       throw 'children of a Session should only be from an Appointment (class) or a Request (class), diffrent children might cause problems to the SessionPresenter';
     }
@@ -45,7 +48,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
       for (var i in widget.session.accessList) {
         accessList.add(
           {
-            'person': Provider.of<DataManager>(context, listen: false)
+            'person': Provider.of<LocalData>(context, listen: false)
                 .findPersonById(i['person']),
             if (widget.isAppointment) 'code': i['code'],
           },
@@ -60,7 +63,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(widget.session.id),
-      onDismissed: (direction) => Provider.of<DataManager>(context, listen: false)
+      onDismissed: (direction) => Provider.of<LocalData>(context, listen: false)
           .deleteSession(widget.session),
       confirmDismiss: (direction) => showDialog(
         context: context,
@@ -94,10 +97,24 @@ class _SessionPresenterState extends State<SessionPresenter> {
                             '$date',
                             style: TextStyle(fontSize: 14),
                           ),
-                          Text(
-                            'Weather',
-                            style: TextStyle(fontSize: 14),
-                          ),
+                          widget.weather != null
+                              ? Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      widget.weather.skyIcon,
+                                      color: Colors.white,
+                                      size: 14,
+                                    ),
+                                    Text(
+                                      '${widget.weather.maxTemp} ${widget.weather.tempUnit}',
+                                      style: TextStyle(fontSize: 14),
+                                    )
+                                  ],
+                                )
+                              : Text(
+                                  'No Weather Data',
+                                  style: TextStyle(fontSize: 14),
+                                ),
                         ],
                       ),
                     ],
@@ -166,7 +183,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
 
   Widget getAccessListItem(Map<String, dynamic> accessItem, context) {
     String personId = accessItem['person'];
-    Person person = Provider.of<DataManager>(context).findPersonById(personId);
+    Person person = Provider.of<LocalData>(context).findPersonById(personId);
     bool hasCode = widget.isAppointment;
     String code;
     if (hasCode) code = accessItem['code'];
@@ -181,7 +198,9 @@ class _SessionPresenterState extends State<SessionPresenter> {
             onTap: () {
               showDialog(
                 context: context,
-                builder: (_) => PersonDetailDialog(personId: personId, ),
+                builder: (_) => PersonDetailDialog(
+                  personId: personId,
+                ),
               );
             },
             child: Text(
