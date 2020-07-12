@@ -13,6 +13,29 @@ abstract class Session implements Comparable<Session> {
     @required this.endTime,
   });
 
+  String accessListToString(List<Map<String, String>> accessList) {
+    String encodedAccessList = '';
+
+    for (Map<String, String> accessMap in accessList) {
+      encodedAccessList += accessMap['person'] + ',';
+    }
+
+    return encodedAccessList;
+  }
+
+  static List<Map<String, String>> stringToAccessList(
+      String encodedAccessList) {
+    List<Map<String, String>> accessList = [];
+    List<String> persons = encodedAccessList.split(',');
+
+    for (String person in persons) {
+      if (person.isEmpty) break;
+      accessList.add({'person': person});
+    }
+    print(accessList); //TODO
+    return accessList;
+  }
+
   @override
   int compareTo(Session other) {
     return startTime.compareTo(other.startTime);

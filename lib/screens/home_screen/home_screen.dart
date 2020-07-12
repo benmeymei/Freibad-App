@@ -1,7 +1,7 @@
 import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/session_data.dart';
 import 'package:freibad_app/provider/weather_data.dart';
 
 import 'package:provider/provider.dart';
@@ -32,11 +32,11 @@ class _HomeScreenState extends State<HomeScreen> {
   void didChangeDependencies() {
     if (isInitState) {
       getLocalData =
-          Provider.of<LocalData>(context, listen: false).fetchAndSetData();
+          Provider.of<SessionData>(context, listen: false).fetchAndSetData();
       getWeather =
           Provider.of<WeatherData>(context, listen: false).fetchAndSetData();
 
-      developer.log('fetching and setting data finished');
+      developer.log('fetching and setting data request send');
       isInitState = false;
     }
     super.didChangeDependencies();
@@ -49,11 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
       body: FutureBuilder(
         future: Future.wait([getLocalData, getWeather]),
         builder: (context, snapshot) {
-          print(snapshot.connectionState);
           if (snapshot.connectionState == ConnectionState.done) {
             return widget.subscreens[bottomNavBarIndex];
           } else if (snapshot.hasError) {
-            //Future error handling
+            developer.log(
+                'Loading data from external source (SQLite/API) failed: ',
+                error: snapshot.error);
             return widget.subscreens[bottomNavBarIndex];
           } else
             return Center(

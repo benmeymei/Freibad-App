@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:freibad_app/services/api_keys.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
@@ -52,7 +53,8 @@ class APIService extends API {
           'apikey': APIKeys.ClimaCellAPIKey,
         },
       );
-      developer.log('request to the ClimaCell API finished');
+      developer.log(
+          'request to the ClimaCell API finished, Statuscode: ${weatherResponse.statusCode}');
       if (weatherResponse.statusCode == 200) {
         List<dynamic> decodedResponse = jsonDecode(weatherResponse.body);
 
@@ -63,7 +65,7 @@ class APIService extends API {
               listOfTemp[1]; //max temp is always second
           DateTime dailyTempMaxDateTime =
               DateTime.parse(dailyTempMaxInfo['observation_time']);
-          double dailyTempMax = dailyTempMaxInfo['max']['value'];
+          double dailyTempMax = dailyTempMaxInfo['max']['value'].toDouble();
 
           //get weather code
           String dailyWeatherCode = dailyForecast['weather_code']['value'];
@@ -77,6 +79,7 @@ class APIService extends API {
           );
         }
       } else {
+        debugPrint(weatherResponse.reasonPhrase);
         throw Exception(
             'Something went wrong calling the ClimaCell API, Error: ${weatherResponse.statusCode}');
       }
@@ -103,7 +106,7 @@ class FakeAPIService extends API {
       DateTime now = DateTime.now();
       formattedWeatherResponse.add(
         {
-          'max_temp': 21.0,
+          'max_temp': 21,
           'max_temp_time': DateTime(now.year, now.month, now.day)
               .add(Duration(days: i))
               .toIso8601String(),

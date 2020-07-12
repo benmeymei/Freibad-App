@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/session_data.dart';
 import 'package:freibad_app/provider/weather_data.dart';
 import 'package:provider/provider.dart';
 import 'package:freibad_app/models/session.dart';
@@ -15,8 +15,8 @@ class _CodesSubscreenState extends State<CodesSubscreen> {
 
   @override
   Widget build(BuildContext context) {
-    sessions = Provider.of<LocalData>(context).appointments;
-    sessions.addAll(Provider.of<LocalData>(context).requests);
+    sessions = Provider.of<SessionData>(context).appointments;
+    sessions.addAll(Provider.of<SessionData>(context).requests);
     sessions.sort();
     return ListView(
       children: sessions

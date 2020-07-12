@@ -1,5 +1,6 @@
 import 'dart:developer' as developer;
 import 'package:flutter/material.dart';
+import 'package:location/location.dart';
 import 'package:freibad_app/models/weather.dart';
 import 'package:freibad_app/services/api_service.dart';
 import 'package:mdi/mdi.dart';
@@ -32,9 +33,19 @@ class WeatherData with ChangeNotifier {
 
   Future<void> fetchAndSetData() async {
     //create a weather forecast for 15 days from now
-    double requestLocationLat =
-        51.248688; //Location of the my local swimming pool
-    double requestLocationLon = 6.740645;
+    double requestLocationLat;
+    double requestLocationLon;
+    Location location = Location();
+    await location.requestPermission();
+
+    if (await location.serviceEnabled()) {
+      LocationData userLocation = await location.getLocation();
+      requestLocationLat = userLocation.latitude;
+      requestLocationLon = userLocation.longitude;
+    } else {
+      requestLocationLat = 51.248688;
+      requestLocationLon = 6.740645;
+    }
 
     try {
       rawWeather =

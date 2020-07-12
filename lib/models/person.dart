@@ -22,4 +22,23 @@ class Person {
     @required this.phoneNumber,
     @required this.email,
   });
+
+  Map<String, dynamic> toMap() {
+    return {
+      'id': id,
+      'forename': forename,
+      'name': name,
+      'streetName': streetName,
+      'streetNumber': streetNumber,
+      'postCode': postCode,
+      'city': city,
+      'phoneNumber': phoneNumber,
+      'email': email,
+    };
+  }
+
+  @override
+  String toString() {
+    return "$forename $name";
+  }
 }

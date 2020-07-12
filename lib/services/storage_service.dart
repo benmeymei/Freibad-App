@@ -1,8 +1,15 @@
+import 'dart:developer' as developer;
+
+import 'package:sqflite/sqflite.dart';
+import 'package:path/path.dart' as path;
+
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
 
 abstract class StorageService {
+  Future<void> setUpDB();
+
   Future<List<Person>> getPersons();
   Future<List<Appointment>> getAppointment();
   Future<List<Request>> getRequests();
@@ -12,37 +19,102 @@ abstract class StorageService {
   Future<void> addAppointment(Appointment session);
   Future<void> addRequest(Request request);
 
+  Future<void> updateRequestStatus(String requestID, bool hasFailed);
+
   Future<void> deletePerson(String personID);
   Future<void> deleteAppointment(String appointmentID);
   Future<void> deleteRequest(String requestID);
 }
 
 class LocalStorage extends StorageService {
-  Future<List<Person>> getPersons() {
-    return null;
+  Future<Database> database;
+
+  Future<void> setUpDB() async {
+    database = openDatabase(path.join(await getDatabasesPath(), 'access.db'),
+        onCreate: (db, version) {
+      Future<void> createPersonsTable = db.execute(
+        "CREATE TABLE persons(id TEXT PRIMARY KEY, forename TEXT, name TEXT, streetName TEXT, streetNumber TEXT, postCode INTEGER, city TEXT, phoneNumber TEXT, email TEXT)",
+      );
+      Future<void> createAppointmentsTable = db.execute(
+        "CREATE TABLE appointments(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT)",
+      );
+      Future<void> createRequestsTable = db.execute(
+        "CREATE TABLE requests(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT, hasFailed INTEGER)",
+      );
+      return Future.wait(
+          [createPersonsTable, createAppointmentsTable, createRequestsTable]);
+    }, version: 1);
   }
 
-  Future<List<Appointment>> getAppointment() {
-    return null;
+  Future<List<Person>> getPersons() async {
+    final Database db = await database;
+    final List<Map<String, dynamic>> content = await db.query('persons');
+    return List.generate(content.length, (i) {
+      return Person(
+          id: content[i]['id'],
+          forename: content[i]['forename'],
+          name: content[i]['name'],
+          streetName: content[i]['streetName'],
+          streetNumber: content[i]['streetNumber'],
+          postCode: content[i]['postCode'],
+          city: content[i]['city'],
+          phoneNumber: content[i]['phoneNumber'],
+          email: content[i]['email']);
+    });
   }
 
-  Future<List<Request>> getRequests() {
-    return null;
+  Future<List<Appointment>> getAppointment() async {
+    final Database db = await database;
+    final List<Map<String, dynamic>> content = await db.query('appointments');
+    return List.generate(content.length, (i) {
+      return Appointment(
+        id: content[i]['id'],
+        accessList: Appointment.stringToAccessList(content[i]['accessList']),
+        startTime: DateTime.parse(content[i]['startTime']),
+        endTime: DateTime.parse(content[i]['endTime']),
+      );
+    });
   }
 
-  Future<void> addPerson(Person person) {
-    return null;
+  Future<List<Request>> getRequests() async {
+    final Database db = await database;
+    final List<Map<String, dynamic>> content = await db.query('requests');
+
+    return List.generate(content.length, (i) {
+      developer
+          .log(Request.stringToAccessList(content[i]['accessList']).toString());
+      return Request(
+          id: content[i]['id'],
+          accessList: Request.stringToAccessList(content[i]['accessList']),
+          startTime: DateTime.parse(content[i]['startTime']),
+          endTime: DateTime.parse(content[i]['endTime']),
+          hasFailed: content[i]['hasFailed'] == 0); //0 == TRUE
+    });
+  }
+
+  Future<void> addPerson(Person person) async {
+    final Database db = await database;
+    db.insert('persons', person.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
   Future<void> updatePerson(Person person) {
     return null;
   }
 
-  Future<void> addAppointment(Appointment session) {
-    return null;
+  Future<void> addAppointment(Appointment appointment) async {
+    final Database db = await database;
+    db.insert('appointments', appointment.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> addRequest(Request request) {
+  Future<void> addRequest(Request request) async {
+    final Database db = await database;
+    await db.insert('requests', request.toMap(),
+        conflictAlgorithm: ConflictAlgorithm.replace);
+  }
+
+  Future<void> updateRequestStatus(String requestID, bool hasFailed) {
     return null;
   }
 
@@ -60,6 +132,10 @@ class LocalStorage extends StorageService {
 }
 
 class FakeLocalStorage extends StorageService {
+  Future<void> setUpDB() {
+    return Future.delayed(Duration(milliseconds: 100));
+  }
+
   Future<List<Person>> getPersons() {
     return Future.value(TestData.persons);
   }
@@ -70,7 +146,7 @@ class FakeLocalStorage extends StorageService {
 
   Future<List<Request>> getRequests() {
     return Future.value(TestData.request);
-  } 
+  }
 
   Future<void> addPerson(Person person) {
     return Future.delayed(Duration(milliseconds: 100));
@@ -85,6 +161,10 @@ class FakeLocalStorage extends StorageService {
   }
 
   Future<void> addRequest(Request request) {
+    return Future.delayed(Duration(milliseconds: 100));
+  }
+
+  Future<void> updateRequestStatus(String requestID, bool hasFailed) {
     return Future.delayed(Duration(milliseconds: 100));
   }
 

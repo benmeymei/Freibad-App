@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/weather.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/session_data.dart';
 import 'package:freibad_app/screens/home_screen/components/person_detail_dialog.dart';
 
 import 'package:provider/provider.dart';
@@ -45,12 +45,12 @@ class _SessionPresenterState extends State<SessionPresenter> {
   @override
   void didChangeDependencies() {
     if (isInitState) {
-      for (var i in widget.session.accessList) {
+      for (Map<String, String> access in widget.session.accessList) {
         accessList.add(
           {
-            'person': Provider.of<LocalData>(context, listen: false)
-                .findPersonById(i['person']),
-            if (widget.isAppointment) 'code': i['code'],
+            'person': Provider.of<SessionData>(context, listen: false)
+                .findPersonById(access['person']),
+            if (widget.isAppointment) 'code': access['code'],
           },
         );
       }
@@ -63,8 +63,9 @@ class _SessionPresenterState extends State<SessionPresenter> {
   Widget build(BuildContext context) {
     return Dismissible(
       key: ValueKey(widget.session.id),
-      onDismissed: (direction) => Provider.of<LocalData>(context, listen: false)
-          .deleteSession(widget.session),
+      onDismissed: (direction) =>
+          Provider.of<SessionData>(context, listen: false)
+              .deleteSession(widget.session),
       confirmDismiss: (direction) => showDialog(
         context: context,
         barrierDismissible: true,
@@ -183,7 +184,8 @@ class _SessionPresenterState extends State<SessionPresenter> {
 
   Widget getAccessListItem(Map<String, dynamic> accessItem, context) {
     String personId = accessItem['person'];
-    Person person = Provider.of<LocalData>(context).findPersonById(personId);
+    Person person = Provider.of<SessionData>(context, listen: false)
+        .findPersonById(personId);
     bool hasCode = widget.isAppointment;
     String code;
     if (hasCode) code = accessItem['code'];

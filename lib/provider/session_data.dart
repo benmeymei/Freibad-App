@@ -7,7 +7,7 @@ import 'package:freibad_app/models/session.dart';
 import 'package:freibad_app/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
-class LocalData with ChangeNotifier {
+class SessionData with ChangeNotifier {
   List<Person> _persons;
   List<Session> _appointments;
   List<Request> _requests;
@@ -16,19 +16,28 @@ class LocalData with ChangeNotifier {
   List<Session> get appointments => [..._appointments];
   List<Request> get requests => [..._requests];
 
-  FakeLocalStorage db =
-      FakeLocalStorage(); //use LocalStorage for production, use FakeLocalStorage for testing
+  LocalStorage db = LocalStorage();
+  //use LocalStorage for production, use FakeLocalStorage for testing
 
   Uuid uuid = Uuid(); // for creating unique ids
 
   Future<void> fetchAndSetData() async {
-    _persons = await db.getPersons();
-    _appointments = await db.getAppointment();
-    _requests = await db.getRequests();
+    await db.setUpDB(); //loads DB
+    _persons = await db.getPersons() ?? [];
+    _appointments = await db.getAppointment() ?? [];
+    _requests = await db.getRequests() ?? [];
+
+    developer.log('fetching and setting local data finished');
     notifyListeners();
   }
 
   Person findPersonById(String id) {
+    if (_persons == null) {
+      return null;
+    }
+    debugPrint((_persons[0].id == id).toString());
+    debugPrint(_persons[0].id);
+    debugPrint(id);
     return _persons.firstWhere((element) => element.id == id);
   }
 
@@ -99,7 +108,7 @@ class LocalData with ChangeNotifier {
     notifyListeners();
   }
 
-  void addAppointment({
+  void _addAppointment({
     @required List<Map<String, String>> accessList,
     @required DateTime startTime,
     @required DateTime endTime,

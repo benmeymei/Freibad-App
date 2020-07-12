@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:date_picker_timeline/date_picker_timeline.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/weather.dart';
-import 'package:freibad_app/provider/local_data.dart';
+import 'package:freibad_app/provider/session_data.dart';
 import 'package:freibad_app/provider/weather_data.dart';
 
 import 'package:freibad_app/screens/home_screen/components/person_detail_dialog.dart';
@@ -19,6 +19,7 @@ class PickSubscreen extends StatefulWidget {
 class _PickSubscreenState extends State<PickSubscreen> {
   DateTime sessionDate;
   DateTime startTime;
+  DateTime endTime;
   List<Person> selectedPersons = [];
   Map<DateTime, Weather> cachedWeather;
   DateTime currentMaxTempDateTime;
@@ -64,18 +65,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
             ),
             buildTimeSelector(sessionDate, maxTemp: currentMaxTempDateTime),
             buildPersonSelector(context),
-            RaisedButton.icon(
-              onPressed: () {},
-              color: Theme.of(context).cardColor,
-              icon: Icon(
-                Icons.check,
-                color: Theme.of(context).primaryColor,
-              ),
-              label: Text(
-                'Submit',
-                style: TextStyle(color: Theme.of(context).primaryColor),
-              ),
-            ),
+            buildSubmitButton(context),
           ],
         ),
       ),
@@ -173,6 +163,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
                   onPressed: () {
                     setState(() {
                       startTime = time[0];
+                      endTime = time[1];
                     });
                   },
                   textColor:
@@ -243,6 +234,59 @@ class _PickSubscreenState extends State<PickSubscreen> {
     );
   }
 
+  Container buildSubmitButton(BuildContext context) {
+    return Container(
+      width: 150,
+      child: RaisedButton.icon(
+        onPressed: () {
+          if (sessionDate != null &&
+              startTime != null &&
+              selectedPersons != null &&
+              selectedPersons.isNotEmpty) {
+            developer.log("request for $selectedPersons on $startTime");
+
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Request send!"),
+              ),
+            );
+
+            Provider.of<SessionData>(context, listen: false).addRequest(
+              accessList: [
+                for (Person person in selectedPersons) ...{
+                  {'person': person.id}
+                }
+              ],
+              startTime: startTime,
+              endTime: endTime,
+            );
+            setState(() {
+              startTime = null;
+              endTime = null;
+              sessionDate = null;
+              selectedPersons = [];
+            });
+          } else {
+            Scaffold.of(context).showSnackBar(
+              SnackBar(
+                content: Text("Add date/person"),
+              ),
+            );
+          }
+        },
+        color: Theme.of(context).cardColor,
+        icon: Icon(
+          Icons.check,
+          color: Theme.of(context).primaryColor,
+        ),
+        label: Text(
+          'Submit',
+          style: TextStyle(color: Theme.of(context).primaryColor),
+        ),
+      ),
+    );
+  }
+
   SimpleDialog buildSelectPersonDialog(BuildContext context) {
     return SimpleDialog(
       backgroundColor: Theme.of(context).cardColor,
@@ -263,7 +307,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
             );
           },
         ),
-        ...Provider.of<LocalData>(context).persons.map(
+        ...Provider.of<SessionData>(context).persons.map(
           (person) {
             if (!selectedPersons.contains(person)) {
               return InkWell(
