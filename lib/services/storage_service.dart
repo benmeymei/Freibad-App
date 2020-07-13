@@ -18,8 +18,7 @@ abstract class StorageService {
   Future<void> updatePerson(Person person);
   Future<void> addAppointment(Appointment session);
   Future<void> addRequest(Request request);
-
-  Future<void> updateRequestStatus(String requestID, bool hasFailed);
+  Future<void> updateRequest(Request request);
 
   Future<void> deletePerson(String personID);
   Future<void> deleteAppointment(String appointmentID);
@@ -81,8 +80,6 @@ class LocalStorage extends StorageService {
     final List<Map<String, dynamic>> content = await db.query('requests');
 
     return List.generate(content.length, (i) {
-      developer
-          .log(Request.stringToAccessList(content[i]['accessList']).toString());
       return Request(
           id: content[i]['id'],
           accessList: Request.stringToAccessList(content[i]['accessList']),
@@ -98,8 +95,14 @@ class LocalStorage extends StorageService {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> updatePerson(Person person) {
-    return null;
+  Future<void> updatePerson(Person person) async {
+    final db = await database;
+    await db.update(
+      'persons',
+      person.toMap(),
+      where: "id = ?",
+      whereArgs: [person.id],
+    );
   }
 
   Future<void> addAppointment(Appointment appointment) async {
@@ -114,20 +117,44 @@ class LocalStorage extends StorageService {
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> updateRequestStatus(String requestID, bool hasFailed) {
-    return null;
+  Future<void> updateRequest(Request request) async {
+    final db = await database;
+    await db.update(
+      'requests',
+      request.toMap(),
+      where: "id = ?",
+      whereArgs: [request.id],
+    );
   }
 
-  Future<void> deletePerson(String personID) {
-    return null;
+  Future<void> deletePerson(String personID) async {
+    final db = await database;
+
+    await db.delete(
+      'persons',
+      where: "id = ?",
+      whereArgs: [personID],
+    );
   }
 
-  Future<void> deleteAppointment(String appointmentID) {
-    return null;
+  Future<void> deleteAppointment(String appointmentID) async {
+    final db = await database;
+
+    await db.delete(
+      'appointments',
+      where: "id = ?",
+      whereArgs: [appointmentID],
+    );
   }
 
-  Future<void> deleteRequest(String requestID) {
-    return null;
+  Future<void> deleteRequest(String requestID) async {
+    final db = await database;
+
+    await db.delete(
+      'requests',
+      where: "id = ?",
+      whereArgs: [requestID],
+    );
   }
 }
 
@@ -164,7 +191,7 @@ class FakeLocalStorage extends StorageService {
     return Future.delayed(Duration(milliseconds: 100));
   }
 
-  Future<void> updateRequestStatus(String requestID, bool hasFailed) {
+  Future<void> updateRequest(Request request) {
     return Future.delayed(Duration(milliseconds: 100));
   }
 

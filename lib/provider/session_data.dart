@@ -35,9 +35,6 @@ class SessionData with ChangeNotifier {
     if (_persons == null) {
       return null;
     }
-    debugPrint((_persons[0].id == id).toString());
-    debugPrint(_persons[0].id);
-    debugPrint(id);
     return _persons.firstWhere((element) => element.id == id);
   }
 

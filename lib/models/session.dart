@@ -32,7 +32,6 @@ abstract class Session implements Comparable<Session> {
       if (person.isEmpty) break;
       accessList.add({'person': person});
     }
-    print(accessList); //TODO
     return accessList;
   }
 

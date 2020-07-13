@@ -238,6 +238,9 @@ class _PickSubscreenState extends State<PickSubscreen> {
     return Container(
       width: 150,
       child: RaisedButton.icon(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10.0),
+        ),
         onPressed: () {
           if (sessionDate != null &&
               startTime != null &&
@@ -289,6 +292,9 @@ class _PickSubscreenState extends State<PickSubscreen> {
 
   SimpleDialog buildSelectPersonDialog(BuildContext context) {
     return SimpleDialog(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(15.0),
+      ),
       backgroundColor: Theme.of(context).cardColor,
       children: [
         IconButton(
