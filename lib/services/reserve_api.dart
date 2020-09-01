@@ -168,7 +168,8 @@ class ReserveAPIService extends ReserveAPI {
       List<Map<String, String>> accessList = [];
       for (Map<dynamic, dynamic> member in members) {
         developer.log('$member');
-        accessList.add({'id': member['userId'], 'code': member['entrycode']});
+        accessList
+            .add({'person': member['userId'], 'code': member['entryCode']});
       }
       return Appointment(
           id: sessionId,
@@ -179,7 +180,7 @@ class ReserveAPIService extends ReserveAPI {
       //0 request is pending, negative request unsuccessful
       List<Map<String, String>> accessList = [];
       for (Map<String, String> member in members) {
-        accessList.add({'id': member['userId']});
+        accessList.add({'person': member['userId']});
       }
       bool hasFailed = status < 0;
       return Request(

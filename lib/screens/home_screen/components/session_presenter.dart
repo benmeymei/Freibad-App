@@ -120,7 +120,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
                       ),
                     ],
                   ),
-                  showAccessList(context),
+                  showAccessList(accessList),
                 ],
               ),
             ),
@@ -172,8 +172,8 @@ class _SessionPresenterState extends State<SessionPresenter> {
       );
   }
 
-  Container showAccessList(BuildContext context) {
-    List<Widget> accessListItems = widget.session.accessList
+  Container showAccessList(List<Map<String, dynamic>> accessList) {
+    List<Widget> accessListItems = accessList
         .map((accessItem) => getAccessListItem(accessItem, context))
         .toList();
     return Container(
@@ -183,12 +183,10 @@ class _SessionPresenterState extends State<SessionPresenter> {
   }
 
   Widget getAccessListItem(Map<String, dynamic> accessItem, context) {
-    String personId = accessItem['person'];
-    Person person = Provider.of<SessionData>(context, listen: false)
-        .findPersonById(personId);
-    bool hasCode = widget.isAppointment;
-    String code;
-    if (hasCode) code = accessItem['code'];
+    Person person = accessItem['person'];
+    String code = accessItem['code']; //only appointments have a code
+
+    bool hasCode = code != null;
 
     return Padding(
       padding: EdgeInsets.only(left: 6, right: 6, top: 1, bottom: 1),
@@ -201,7 +199,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
               showDialog(
                 context: context,
                 builder: (_) => PersonDetailDialog(
-                  personId: personId,
+                  personId: person.id,
                 ),
               );
             },
