@@ -4,6 +4,7 @@ import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
 import 'package:freibad_app/models/session.dart';
+import 'package:freibad_app/services/api_service.dart';
 import 'package:freibad_app/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
@@ -20,6 +21,10 @@ class SessionData with ChangeNotifier {
   //use LocalStorage for production, use FakeLocalStorage for testing
 
   Uuid uuid = Uuid(); // for creating unique ids
+
+  bool useFakeAPIService;
+
+  SessionData({this.useFakeAPIService = false});
 
   Future<void> fetchAndSetData() async {
     await db.setUpDB(); //loads DB
@@ -43,7 +48,7 @@ class SessionData with ChangeNotifier {
     @required String name,
     @required String streetName,
     @required String streetNumber,
-    @required int postCode,
+    @required int postcode,
     @required String city,
     @required String phoneNumber,
     @required String email,
@@ -54,12 +59,16 @@ class SessionData with ChangeNotifier {
         name: name,
         streetName: streetName,
         streetNumber: streetNumber,
-        postCode: postCode,
+        postcode: postcode,
         city: city,
         phoneNumber: phoneNumber,
         email: email);
 
     try {
+      bool apiCallSuccessful = (useFakeAPIService
+          ? await FakeAPIService.addPerson(person)
+          : await APIService.addPerson(person));
+      if (!apiCallSuccessful) return;
       db.addPerson(person);
       _persons.add(person);
       developer.log('added person');
@@ -76,7 +85,7 @@ class SessionData with ChangeNotifier {
     String name,
     String streetName,
     String streetNumber,
-    int postCode,
+    int postcode,
     String city,
     String phoneNumber,
     String email,
@@ -88,12 +97,17 @@ class SessionData with ChangeNotifier {
       name: name ?? currentPerson.name,
       streetName: streetName ?? currentPerson.streetName,
       streetNumber: streetNumber ?? currentPerson.streetNumber,
-      postCode: postCode ?? currentPerson.postCode,
+      postcode: postcode ?? currentPerson.postcode,
       city: city ?? currentPerson.city,
       phoneNumber: phoneNumber ?? currentPerson.phoneNumber,
       email: email ?? currentPerson.email,
     );
     try {
+      bool apiCallSuccessful = useFakeAPIService
+          ? await FakeAPIService.editPerson(updatedPerson)
+          : await APIService.editPerson(updatedPerson);
+      if (!apiCallSuccessful) return;
+
       db.updatePerson(updatedPerson);
       int pos = _persons.indexWhere((element) => element.id == id);
       _persons.replaceRange(pos, pos + 1, [updatedPerson]);
@@ -106,12 +120,13 @@ class SessionData with ChangeNotifier {
   }
 
   void _addAppointment({
+    String id,
     @required List<Map<String, String>> accessList,
     @required DateTime startTime,
     @required DateTime endTime,
   }) async {
     Appointment appointment = Appointment(
-      id: uuid.v1(),
+      id: id ?? uuid.v1(),
       accessList: accessList,
       startTime: startTime,
       endTime: endTime,
@@ -139,9 +154,22 @@ class SessionData with ChangeNotifier {
         endTime: endTime,
         hasFailed: false);
     try {
-      db.addRequest(request);
-      _requests.add(request);
-      developer.log('added request');
+      Session resultSession = useFakeAPIService
+          ? await FakeAPIService.makeReservation(request)
+          : await APIService.makeReservation(request);
+
+      db.addSession(resultSession);
+
+      if (resultSession is Request) {
+        _requests.add(resultSession);
+        developer.log('added request');
+      } else if (resultSession is Appointment) {
+        _appointments.add(resultSession);
+        developer.log('added appointment');
+      } else {
+        developer.log(
+            'Type of session is not saved. Type: ${resultSession.runtimeType}');
+      }
     } catch (exception) {
       developer.log(exception);
       throw exception;
@@ -178,7 +206,7 @@ class SessionData with ChangeNotifier {
     notifyListeners();
   }
 
-  void deleteAppointment(String appointmentId) {
+  Future<void> deleteAppointment(String appointmentId) async {
     //TODO unsubscribe from Website
     try {
       db.deleteAppointment(appointmentId);

@@ -6,7 +6,7 @@ class Person {
   final String name;
   final String streetName;
   final String streetNumber; //can be 3a
-  final int postCode;
+  final int postcode;
   final String city;
   final String phoneNumber;
   final String email;
@@ -17,7 +17,7 @@ class Person {
     @required this.name,
     @required this.streetName,
     @required this.streetNumber,
-    @required this.postCode,
+    @required this.postcode,
     @required this.city,
     @required this.phoneNumber,
     @required this.email,
@@ -30,7 +30,7 @@ class Person {
       'name': name,
       'streetName': streetName,
       'streetNumber': streetNumber,
-      'postCode': postCode,
+      'postCode': postcode,
       'city': city,
       'phoneNumber': phoneNumber,
       'email': email,

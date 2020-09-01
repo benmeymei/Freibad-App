@@ -36,7 +36,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
 
   @override
   void initState() {
-    date = DateFormat('EEEE, d LLLL').format(widget.session.startTime);
+    date = DateFormat('EEE, d LLL').format(widget.session.startTime);
     startTime = DateFormat.Hm().format(widget.session.startTime);
     endTime = DateFormat.Hm().format(widget.session.endTime);
     super.initState();

@@ -36,7 +36,9 @@ class Appointment extends Session {
     List<String> codes = tempSeparation[1].split(',');
 
     for (int i = 0; i < accessList.length; i++) {
-      accessList.add({'code': codes[i]});
+      if (codes[i].isEmpty) break;
+
+      accessList[i].putIfAbsent('code', () => codes[i]);
     }
 
     return accessList;
@@ -45,12 +47,12 @@ class Appointment extends Session {
   @override
   String accessListToString(List<Map<String, String>> accessList) {
     String encodedAccessList =
-        super.accessListToString(accessList); //add persons
+        super.accessListToString(accessList); //add person(s)
 
     encodedAccessList += ';';
 
     for (Map<String, String> access in accessList) {
-      encodedAccessList += access['code'] + ',';
+      encodedAccessList += '${access['code']},';
     }
 
     return encodedAccessList;

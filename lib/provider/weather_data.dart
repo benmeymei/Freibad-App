@@ -11,6 +11,10 @@ class WeatherData with ChangeNotifier {
   Map<DateTime, Weather>
       weather; //key is the day of the weather forecast at zero o'clock
 
+  bool useFakeAPIService;
+
+  WeatherData({this.useFakeAPIService = false});
+
   Future<Map<DateTime, Weather>> getWeatherForecast() async {
     if (lastWeatherRefresh == null ||
         lastWeatherRefresh.day != DateTime.now().day ||
@@ -48,8 +52,14 @@ class WeatherData with ChangeNotifier {
     }
 
     try {
-      rawWeather =
-          await APIService.fetchWeather(requestLocationLat, requestLocationLon);
+      useFakeAPIService //TODO make FakeAPI function
+          ? rawWeather = await FakeAPIService.fetchWeather(
+              requestLocationLat, requestLocationLon)
+          : rawWeather = await APIService.fetchWeather(
+              requestLocationLat, requestLocationLon);
+
+      developer.log("API responded");
+
       weather = {};
       for (int i = 0; i < rawWeather.length; i++) {
         Map<String, dynamic> dailyWeather = rawWeather[i];

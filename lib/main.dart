@@ -19,10 +19,10 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => SessionData(),
+          create: (_) => SessionData(useFakeAPIService: false),
         ),
         ChangeNotifierProvider(
-          create: (_) => WeatherData(),
+          create: (_) => WeatherData(useFakeAPIService: false),
         ),
       ],
       child: MaterialApp(

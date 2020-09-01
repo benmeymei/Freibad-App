@@ -17,7 +17,7 @@ abstract class Session implements Comparable<Session> {
     String encodedAccessList = '';
 
     for (Map<String, String> accessMap in accessList) {
-      encodedAccessList += accessMap['person'] + ',';
+      encodedAccessList += '${accessMap['person']},';
     }
 
     return encodedAccessList;

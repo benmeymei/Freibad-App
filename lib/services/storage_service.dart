@@ -1,5 +1,4 @@
-import 'dart:developer' as developer;
-
+import 'package:freibad_app/models/session.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:path/path.dart' as path;
 
@@ -55,7 +54,7 @@ class LocalStorage extends StorageService {
           name: content[i]['name'],
           streetName: content[i]['streetName'],
           streetNumber: content[i]['streetNumber'],
-          postCode: content[i]['postCode'],
+          postcode: content[i]['postCode'],
           city: content[i]['city'],
           phoneNumber: content[i]['phoneNumber'],
           email: content[i]['email']);
@@ -103,6 +102,16 @@ class LocalStorage extends StorageService {
       where: "id = ?",
       whereArgs: [person.id],
     );
+  }
+
+  Future<void> addSession(Session session) async {
+    if (session is Request) {
+      return addRequest(session);
+    } else if (session is Appointment) {
+      return addAppointment(session);
+    } else {
+      throw 'unknown children of session with the runtime type: ${session.runtimeType}';
+    }
   }
 
   Future<void> addAppointment(Appointment appointment) async {
@@ -223,7 +232,7 @@ class TestData {
           forename: 'Max$i',
           name: 'Mustermann$i',
           phoneNumber: '+0123456789',
-          postCode: 12345,
+          postcode: 12345,
           streetNumber: '$i',
           streetName: 'Musterstraße',
         )

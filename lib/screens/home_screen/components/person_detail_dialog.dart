@@ -53,7 +53,7 @@ class _PersonDetailDialogState extends State<PersonDetailDialog> {
         text: widget.hasPerson ? person.streetNumber : '',
       );
       postCodeController = TextEditingController(
-        text: widget.hasPerson ? person.postCode.toString() : '',
+        text: widget.hasPerson ? person.postcode.toString() : '',
       );
       cityController = TextEditingController(
         text: widget.hasPerson ? person.city : '',
@@ -240,7 +240,7 @@ class _PersonDetailDialogState extends State<PersonDetailDialog> {
                                       forename: forenameController.text,
                                       name: nameController.text,
                                       phoneNumber: phoneNumberController.text,
-                                      postCode:
+                                      postcode:
                                           int.parse(postCodeController.text),
                                       streetName: streetNameController.text,
                                       streetNumber: streetNumberController.text,
@@ -254,7 +254,7 @@ class _PersonDetailDialogState extends State<PersonDetailDialog> {
                                       forename: forenameController.text,
                                       name: nameController.text,
                                       phoneNumber: phoneNumberController.text,
-                                      postCode:
+                                      postcode:
                                           int.parse(postCodeController.text),
                                       streetName: streetNameController.text,
                                       streetNumber: streetNumberController.text,
