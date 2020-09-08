@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
@@ -207,29 +208,65 @@ class SessionData with ChangeNotifier {
   }
 
   Future<void> deleteAppointment(String appointmentId) async {
-    //TODO unsubscribe from Website
+    int elementPos =
+        _appointments.indexWhere((element) => element.id == appointmentId);
+    //save appointment, just in case something goes wrong
+    Appointment appointmentToDelete = _appointments[elementPos];
+
     try {
+      _appointments.removeAt(elementPos);
+      notifyListeners();
+
+      bool apiCallSuccessful = useFakeAPIService
+          ? await FakeAPIService.deleteReservation(appointmentId)
+          : await APIService.deleteReservation(appointmentId);
+      if (!apiCallSuccessful) {
+        //api call not successful, add appointment back to list
+        developer.log("api call not successful");
+        _appointments.add(appointmentToDelete);
+        notifyListeners();
+        return;
+      }
+
       db.deleteAppointment(appointmentId);
-      _appointments.removeAt(
-          _appointments.indexWhere((element) => element.id == appointmentId));
       developer.log('deleted appointment');
     } catch (exception) {
+      //add appointment to list, to allow clean removal from server
+      _appointments.add(appointmentToDelete);
+      notifyListeners();
       developer.log(exception);
       throw exception;
     }
-    notifyListeners();
   }
 
-  void deleteRequest(String requestId) {
+  void deleteRequest(String requestId) async {
+    int elementPos = _requests.indexWhere((element) => element.id == requestId);
+    //save request, just in case something goes wrong
+    Request requestToDelete = _requests[elementPos];
+
     try {
+      _requests.removeAt(elementPos);
+      notifyListeners();
+      bool apiCallSuccessful = useFakeAPIService
+          ? await FakeAPIService.deleteReservation(requestId)
+          : await APIService.deleteReservation(requestId);
+
+      if (!apiCallSuccessful) {
+        //api call not successful, add request back to list
+        developer.log("api call not successful");
+        _requests.add(requestToDelete);
+        notifyListeners();
+        return;
+      }
+
       db.deleteRequest(requestId);
-      _requests
-          .removeAt(_requests.indexWhere((element) => element.id == requestId));
       developer.log('deleted request');
     } catch (exception) {
+      //add request to list, to allow clean removal from server
+      _requests.add(requestToDelete);
+      notifyListeners();
       developer.log(exception);
       throw exception;
     }
-    notifyListeners();
   }
 }

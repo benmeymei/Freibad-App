@@ -13,6 +13,7 @@ abstract class Session implements Comparable<Session> {
     @required this.endTime,
   });
 
+  //bad practice, rather than saved in a single string, accessList should have its own db table ->  TODO
   String accessListToString(List<Map<String, String>> accessList) {
     String encodedAccessList = '';
 

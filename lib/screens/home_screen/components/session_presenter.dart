@@ -17,7 +17,9 @@ class SessionPresenter extends StatefulWidget {
   final bool isAppointment;
 
   SessionPresenter(this.session, this.weather)
-      : isAppointment = session is Appointment {
+      : isAppointment = session is Appointment,
+        super(key: ValueKey(session.id)) {
+    //key to avoid state problems when deleting an item
     if (!isAppointment && !(session is Request)) {
       throw 'children of a Session should only be from an Appointment (class) or a Request (class), diffrent children might cause problems to the SessionPresenter';
     }

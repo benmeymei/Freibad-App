@@ -39,6 +39,7 @@ abstract class ReserveAPI {
 
 class ReserveAPIService extends ReserveAPI {
   static const baseUrl = "http://10.0.2.2:5000";
+  //static const baseUrl = "http://192.168.2.125:5000";
 
   static Future<bool> addUser(Person user) async {
     String url =
@@ -52,7 +53,7 @@ class ReserveAPIService extends ReserveAPI {
         },
       );
       developer.log(
-          'request to the Reserve API finished, Statuscode: ${addUserResponse.statusCode}');
+          'user post request to the Reserve API finished, Statuscode: ${addUserResponse.statusCode}');
       if (addUserResponse.statusCode == 201) {
         developer.log('added user on the server');
         return true;
@@ -69,7 +70,7 @@ class ReserveAPIService extends ReserveAPI {
 
   static Future<bool> updateUser(Person user) async {
     String url =
-        '$baseUrl/user/${user.id}?forename=${user.forename}&name=${user.name}&adress=${user.streetName} ${user.streetNumber}&postcode=${user.postcode}&city=${user.city}&phone=${user.phoneNumber}&email=${user.email}';
+        '$baseUrl/user/${user.id}?forename=${user.forename}&name=${user.name}&adress=${user.streetName}${user.streetNumber}&postcode=${user.postcode}&city=${user.city}&phone=${user.phoneNumber}&email=${user.email}';
 
     try {
       final updateUserResponse = await http.put(
@@ -79,7 +80,7 @@ class ReserveAPIService extends ReserveAPI {
         },
       );
       developer.log(
-          'request to the Reserve API finished, Statuscode: ${updateUserResponse.statusCode}');
+          'user edit request to the Reserve API finished, Statuscode: ${updateUserResponse.statusCode}');
       if (updateUserResponse.statusCode == 204) {
         developer.log('edited user');
         return true;
@@ -100,7 +101,7 @@ class ReserveAPIService extends ReserveAPI {
       members += '&members=${member['person']}';
 
     String url =
-        '$baseUrl/session/${request.id}?startTime=${request.startTime.toIso8601String()}&pool=Strandbad Lörick$members';
+        '$baseUrl/session/${request.id}?startTime=${request.startTime.toIso8601String()}&endTime=${request.endTime.toIso8601String()}&pool=Strandbad Lörick$members';
 
     try {
       final addSessionResponse = await http.post(
@@ -110,7 +111,7 @@ class ReserveAPIService extends ReserveAPI {
         },
       );
       developer.log(
-          'request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
+          'request post request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
       if (addSessionResponse.statusCode == 201) {
         Session resultSession = jsonToSession(addSessionResponse.body);
         return resultSession;
@@ -135,7 +136,7 @@ class ReserveAPIService extends ReserveAPI {
         },
       );
       developer.log(
-          'request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
+          'session get request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
       if (addSessionResponse.statusCode == 201) {
         Session resultSession = jsonToSession(addSessionResponse.body);
         return resultSession;
@@ -149,8 +150,28 @@ class ReserveAPIService extends ReserveAPI {
     }
   }
 
-  static Future<bool> deleteReservation(String sessionId) async {
-    return null;
+  static Future<bool> deleteReservation(String appointmentId) async {
+    String url = '$baseUrl/session/$appointmentId';
+
+    try {
+      final addSessionResponse = await http.delete(
+        url,
+        headers: {
+          //'apikey': APIKeys.ReserveAPI,
+        },
+      );
+      developer.log(
+          'session delete request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
+      if (addSessionResponse.statusCode == 204) {
+        return true;
+      } else {
+        throw Exception(
+            'Something went wrong calling the Reserve API, Error: ${addSessionResponse.reasonPhrase}');
+      }
+    } catch (exception) {
+      developer.log('Error on calling the Reserve API', error: exception);
+      return false;
+    }
   }
 
   static Session jsonToSession(String jsonResponse) {
@@ -179,7 +200,7 @@ class ReserveAPIService extends ReserveAPI {
     } else {
       //0 request is pending, negative request unsuccessful
       List<Map<String, String>> accessList = [];
-      for (Map<String, String> member in members) {
+      for (Map<dynamic, dynamic> member in members) {
         accessList.add({'person': member['userId']});
       }
       bool hasFailed = status < 0;
