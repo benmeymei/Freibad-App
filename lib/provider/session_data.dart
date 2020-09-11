@@ -32,8 +32,31 @@ class SessionData with ChangeNotifier {
     _persons = await db.getPersons() ?? [];
     _appointments = await db.getAppointment() ?? [];
     _requests = await db.getRequests() ?? [];
-
     developer.log('fetching and setting local data finished');
+
+    for (Request request in _requests) {
+      if (request.hasFailed) continue;
+
+      try {
+        Session session = (useFakeAPIService
+            ? await FakeAPIService.getReservation(request.id)
+            : await APIService.getReservation(request.id));
+
+        if (session is Request) continue;
+
+        _addAppointment(
+            id: session.id,
+            accessList: session.accessList,
+            startTime: session.startTime,
+            endTime: session.endTime);
+        deleteRequest(session.id);
+      } catch (exception) {
+        developer.log('Something went wrong updating the pending session',
+            error: exception);
+        continue;
+      }
+    }
+    developer.log('finished updating pending sessions');
     notifyListeners();
   }
 

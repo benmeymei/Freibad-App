@@ -25,7 +25,7 @@ class Appointment extends Session {
     };
   }
 
-  //bad practice, rather than saved in a single string, accessList should have its own db table ->  TODO
+  //bad practice, rather than saved in a single string, accessList should have its own db table
   static List<Map<String, String>> stringToAccessList(
       String encodedAccessList) {
     List<String> tempSeparation = encodedAccessList
@@ -45,7 +45,7 @@ class Appointment extends Session {
     return accessList;
   }
 
-  //bad practice, rather than saved in a single string, accessList should have its own db table ->  TODO
+  //bad practice, rather than saved in a single string, accessList should have its own db table
   @override
   String accessListToString(List<Map<String, String>> accessList) {
     String encodedAccessList =

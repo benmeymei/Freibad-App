@@ -38,7 +38,7 @@ abstract class ReserveAPI {
 }
 
 class ReserveAPIService extends ReserveAPI {
-  static const baseUrl = "http://10.0.2.2:5000";
+  static String baseUrl = APIKeys.BaseURL;
   //static const baseUrl = "http://192.168.2.125:5000";
 
   static Future<bool> addUser(Person user) async {
@@ -126,7 +126,7 @@ class ReserveAPIService extends ReserveAPI {
   }
 
   static Future<Session> getReservation(String sessionId) async {
-    String url = '$baseUrl/session$sessionId';
+    String url = '$baseUrl/session/$sessionId';
 
     try {
       final addSessionResponse = await http.get(
@@ -137,7 +137,7 @@ class ReserveAPIService extends ReserveAPI {
       );
       developer.log(
           'session get request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
-      if (addSessionResponse.statusCode == 201) {
+      if (addSessionResponse.statusCode == 200) {
         Session resultSession = jsonToSession(addSessionResponse.body);
         return resultSession;
       } else {
@@ -163,6 +163,10 @@ class ReserveAPIService extends ReserveAPI {
       developer.log(
           'session delete request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
       if (addSessionResponse.statusCode == 204) {
+        return true;
+      } else if (addSessionResponse.statusCode == 404) {
+        developer.log(
+            "session could not be found on the server. Proceeding with deletion.");
         return true;
       } else {
         throw Exception(
