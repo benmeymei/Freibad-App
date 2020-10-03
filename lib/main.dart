@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
           create: (_) => SessionData(useFakeAPIService: true),
         ),
         ChangeNotifierProvider(
-          create: (_) => WeatherData(useFakeAPIService: false),
+          create: (_) => WeatherData(useFakeAPIService: true),
         ),
       ],
       child: MaterialApp(

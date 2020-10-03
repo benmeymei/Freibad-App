@@ -83,6 +83,6 @@ class FakeWeatherAPIService extends WeatherAPI {
       );
     }
     developer.log('updated fake weather');
-    return Future.delayed(Duration(seconds: 5), () => formattedWeatherResponse);
+    return Future.delayed(Duration(seconds: 1), () => formattedWeatherResponse);
   }
 }

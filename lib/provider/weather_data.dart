@@ -59,12 +59,13 @@ class WeatherData with ChangeNotifier {
               requestLocationLat, requestLocationLon);
 
       developer.log("API responded");
-
+      print(rawWeather.length);
       weather = {};
       for (int i = 0; i < rawWeather.length; i++) {
         Map<String, dynamic> dailyWeather = rawWeather[i];
 
-        double maxTemp = dailyWeather['max_temp'];
+        double maxTemp = (dailyWeather['max_temp'] +
+            0.0); //+.0 to prevent code to not accept plain numbers
         DateTime maxTempTime = DateTime.parse(dailyWeather['max_temp_time']);
         IconData weatherIcon;
 
