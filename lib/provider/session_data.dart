@@ -25,7 +25,9 @@ class SessionData with ChangeNotifier {
 
   bool useFakeAPIService;
 
-  SessionData({this.useFakeAPIService = false});
+  SessionData({this.useFakeAPIService = false}) {
+    print("wir bauen");
+  }
 
   Future<void> fetchAndSetData() async {
     await db.setUpDB(); //loads DB

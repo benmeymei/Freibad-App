@@ -52,14 +52,13 @@ class WeatherData with ChangeNotifier {
     }
 
     try {
-      useFakeAPIService //TODO make FakeAPI function
+      useFakeAPIService
           ? rawWeather = await FakeAPIService.fetchWeather(
               requestLocationLat, requestLocationLon)
           : rawWeather = await APIService.fetchWeather(
               requestLocationLat, requestLocationLon);
 
       developer.log("API responded");
-      print(rawWeather.length);
       weather = {};
       for (int i = 0; i < rawWeather.length; i++) {
         Map<String, dynamic> dailyWeather = rawWeather[i];

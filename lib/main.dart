@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freibad_app/provider/session_data.dart';
+import 'package:freibad_app/provider/settings.dart';
 import 'package:freibad_app/provider/weather_data.dart';
 import 'package:provider/provider.dart';
 import 'package:freibad_app/screens/home_screen/home_screen.dart';
@@ -19,10 +20,17 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => SessionData(useFakeAPIService: true),
+          create: (_) => Settings(),
         ),
-        ChangeNotifierProvider(
-          create: (_) => WeatherData(useFakeAPIService: true),
+        ChangeNotifierProxyProvider<Settings, SessionData>(
+          update: (_, settings, __) =>
+              SessionData(useFakeAPIService: !settings.useServer),
+          create: (_) => SessionData(useFakeAPIService: false),
+        ),
+        ChangeNotifierProxyProvider<Settings, WeatherData>(
+          update: (_, settings, __) =>
+              WeatherData(useFakeAPIService: !settings.useWeatherAPI),
+          create: (_) => WeatherData(useFakeAPIService: false),
         ),
       ],
       child: MaterialApp(
