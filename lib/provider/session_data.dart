@@ -156,7 +156,7 @@ class SessionData with ChangeNotifier {
       endTime: endTime,
     );
     try {
-      db.addAppointment(appointment);
+      db.addSession(appointment);
       _appointments.add(appointment);
       developer.log('added appointment');
     } catch (exception) {

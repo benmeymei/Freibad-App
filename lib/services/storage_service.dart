@@ -15,8 +15,7 @@ abstract class StorageService {
 
   Future<void> addPerson(Person person);
   Future<void> updatePerson(Person person);
-  Future<void> addAppointment(Appointment session);
-  Future<void> addRequest(Request request);
+  Future<void> addSession(Session session);
   Future<void> updateRequest(Request request);
 
   Future<void> deletePerson(String personID);
@@ -34,13 +33,20 @@ class LocalStorage extends StorageService {
         "CREATE TABLE persons(id TEXT PRIMARY KEY, forename TEXT, name TEXT, streetName TEXT, streetNumber TEXT, postCode INTEGER, city TEXT, phoneNumber TEXT, email TEXT)",
       );
       Future<void> createAppointmentsTable = db.execute(
-        "CREATE TABLE appointments(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT)",
+        "CREATE TABLE appointments(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT)",
       );
       Future<void> createRequestsTable = db.execute(
         "CREATE TABLE requests(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT, hasFailed INTEGER)",
       );
-      return Future.wait(
-          [createPersonsTable, createAppointmentsTable, createRequestsTable]);
+      Future<void> createAccessTable = db.execute(
+        "CREATE TABLE access(sessionId TEXT, person TEXT, accessCode TEXT, PRIMARY KEY(sessionId, person))",
+      );
+      return Future.wait([
+        createPersonsTable,
+        createAppointmentsTable,
+        createRequestsTable,
+        createAccessTable
+      ]);
     }, version: 1);
   }
 
@@ -61,31 +67,53 @@ class LocalStorage extends StorageService {
     });
   }
 
+  Future<List<Map<String, String>>> _getAccessList(String sessionId) async {
+    final Database db = await database;
+    final List<Map<String, dynamic>> content = await db.query(
+      'access',
+      where: 'sessionId = ?',
+      whereArgs: [sessionId],
+    );
+    return List.generate(
+        content.length,
+        (i) => {
+              'person': content[i]["person"],
+              'code': content[i]["code"],
+            });
+  }
+
   Future<List<Appointment>> getAppointment() async {
     final Database db = await database;
     final List<Map<String, dynamic>> content = await db.query('appointments');
-    return List.generate(content.length, (i) {
-      return Appointment(
-        id: content[i]['id'],
-        accessList: Appointment.stringToAccessList(content[i]['accessList']),
-        startTime: DateTime.parse(content[i]['startTime']),
-        endTime: DateTime.parse(content[i]['endTime']),
-      );
-    });
+
+    return [
+      for (int i = 0; i < content.length; i++)
+        ...{
+          Appointment(
+            id: content[i]['id'],
+            accessList: await _getAccessList(content[i]['id']),
+            startTime: DateTime.parse(content[i]['startTime']),
+            endTime: DateTime.parse(content[i]['endTime']),
+          )
+        }.toList()
+    ];
   }
 
   Future<List<Request>> getRequests() async {
     final Database db = await database;
     final List<Map<String, dynamic>> content = await db.query('requests');
 
-    return List.generate(content.length, (i) {
-      return Request(
-          id: content[i]['id'],
-          accessList: Request.stringToAccessList(content[i]['accessList']),
-          startTime: DateTime.parse(content[i]['startTime']),
-          endTime: DateTime.parse(content[i]['endTime']),
-          hasFailed: content[i]['hasFailed'] == 0); //0 == TRUE
-    });
+    return [
+      for (int i = 0; i < content.length; i++)
+        ...{
+          Request(
+              id: content[i]['id'],
+              accessList: await _getAccessList(content[i]['id']),
+              startTime: DateTime.parse(content[i]['startTime']),
+              endTime: DateTime.parse(content[i]['endTime']),
+              hasFailed: content[i]['hasFailed'] == 0) //0 == TRUE
+        }.toList()
+    ];
   }
 
   Future<void> addPerson(Person person) async {
@@ -104,23 +132,37 @@ class LocalStorage extends StorageService {
     );
   }
 
+  Future<void> _addAccess(
+      List<Map<String, String>> accessList, String sessionId) async {
+    final Database db = await database;
+    for (int i = 0; i < accessList.length; i++) {
+      Map<String, String> accessItem = accessList[i];
+      accessItem.putIfAbsent("sessionId", () => sessionId);
+      db.insert('access', accessItem,
+          conflictAlgorithm: ConflictAlgorithm.replace);
+    }
+  }
+
   Future<void> addSession(Session session) async {
+    //add accessList to DB
+    _addAccess(session.accessList, session.id);
+
     if (session is Request) {
-      return addRequest(session);
+      return _addRequest(session);
     } else if (session is Appointment) {
-      return addAppointment(session);
+      return _addAppointment(session);
     } else {
       throw 'unknown children of session with the runtime type: ${session.runtimeType}';
     }
   }
 
-  Future<void> addAppointment(Appointment appointment) async {
+  Future<void> _addAppointment(Appointment appointment) async {
     final Database db = await database;
     db.insert('appointments', appointment.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace);
   }
 
-  Future<void> addRequest(Request request) async {
+  Future<void> _addRequest(Request request) async {
     final Database db = await database;
     await db.insert('requests', request.toMap(),
         conflictAlgorithm: ConflictAlgorithm.replace);
@@ -134,6 +176,10 @@ class LocalStorage extends StorageService {
       where: "id = ?",
       whereArgs: [request.id],
     );
+
+    //updating of access not optimized
+    await _deleteAccess(request.id);
+    await _addAccess(request.accessList, request.id);
   }
 
   Future<void> deletePerson(String personID) async {
@@ -146,9 +192,18 @@ class LocalStorage extends StorageService {
     );
   }
 
+  Future<void> _deleteAccess(sessionId) async {
+    final db = await database;
+    await db.delete(
+      'access',
+      where: "sessionId = ?",
+      whereArgs: [sessionId],
+    );
+  }
+
   Future<void> deleteAppointment(String appointmentID) async {
     final db = await database;
-
+    await _deleteAccess(appointmentID);
     await db.delete(
       'appointments',
       where: "id = ?",
@@ -158,7 +213,7 @@ class LocalStorage extends StorageService {
 
   Future<void> deleteRequest(String requestID) async {
     final db = await database;
-
+    await _deleteAccess(requestID);
     await db.delete(
       'requests',
       where: "id = ?",
@@ -169,7 +224,7 @@ class LocalStorage extends StorageService {
 
 class FakeLocalStorage extends StorageService {
   Future<void> setUpDB() {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
   Future<List<Person>> getPersons() {
@@ -185,35 +240,31 @@ class FakeLocalStorage extends StorageService {
   }
 
   Future<void> addPerson(Person person) {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
   Future<void> updatePerson(Person person) {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
-  Future<void> addAppointment(Appointment appointment) {
-    return Future.delayed(Duration(milliseconds: 100));
-  }
-
-  Future<void> addRequest(Request request) {
-    return Future.delayed(Duration(milliseconds: 100));
+  Future<void> addSession(Session session) {
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
   Future<void> updateRequest(Request request) {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
   Future<void> deletePerson(String personID) {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
   Future<void> deleteAppointment(String appointmentID) {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 
   Future<void> deleteRequest(String requestID) {
-    return Future.delayed(Duration(milliseconds: 100));
+    return Future.delayed(Duration(milliseconds: 10));
   }
 }
 

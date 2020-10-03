@@ -47,8 +47,8 @@ class WeatherData with ChangeNotifier {
       requestLocationLat = userLocation.latitude;
       requestLocationLon = userLocation.longitude;
     } else {
-      requestLocationLat = 51.248688;
-      requestLocationLon = 6.740645;
+      requestLocationLat = 51.2385413;
+      requestLocationLon = 6.744311;
     }
 
     try {

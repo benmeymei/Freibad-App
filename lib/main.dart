@@ -19,7 +19,7 @@ class MyApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => SessionData(useFakeAPIService: false),
+          create: (_) => SessionData(useFakeAPIService: true),
         ),
         ChangeNotifierProvider(
           create: (_) => WeatherData(useFakeAPIService: false),

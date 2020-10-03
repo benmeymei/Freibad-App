@@ -18,15 +18,15 @@ class CustomBottomNavigationBar extends StatelessWidget {
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.vpn_key),
-          title: Text('Codes'),
+          label: 'Codes',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.date_range),
-          title: Text('Pick'),
+          label: 'Pick',
         ),
         BottomNavigationBarItem(
           icon: Icon(Icons.settings),
-          title: Text('Settings'),
+          label: 'Settings',
         ),
       ],
     );

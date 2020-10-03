@@ -24,15 +24,7 @@ class Request extends Session {
       'id': id,
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
-      'accessList': accessListToString(accessList),
       'hasFailed': hasFailed ? 0 : 1, //SQLite cannot store bool, 0 == TRUE,
     };
-  }
-
-  //bad practice, rather than saved in a single string, accessList should have its own db table
-  static List<Map<String, String>> stringToAccessList(
-    String encodedAccessList,
-  ) {
-    return Session.stringToAccessList(encodedAccessList);
   }
 }
