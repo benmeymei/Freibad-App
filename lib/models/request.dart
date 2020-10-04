@@ -11,12 +11,14 @@ class Request extends Session {
     @required List<Map<String, String>> accessList,
     @required DateTime startTime,
     @required DateTime endTime,
+    @required String location,
     @required this.hasFailed,
   }) : super(
           id: id,
           accessList: accessList,
           startTime: startTime,
           endTime: endTime,
+          location: location,
         );
 
   Map<String, dynamic> toMap() {
@@ -25,6 +27,7 @@ class Request extends Session {
       'startTime': startTime.toIso8601String(),
       'endTime': endTime.toIso8601String(),
       'hasFailed': hasFailed ? 0 : 1, //SQLite cannot store bool, 0 == TRUE,
+      'location': location
     };
   }
 }

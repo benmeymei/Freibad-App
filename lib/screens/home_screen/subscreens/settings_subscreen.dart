@@ -42,6 +42,21 @@ class _SettingsSubscreenState extends State<SettingsSubscreen> {
                 },
               )
             ],
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Storage-Service"),
+              Switch.adaptive(
+                activeColor: Theme.of(context).primaryColor,
+                value: Provider.of<Settings>(context, listen: false)
+                    .useStorageService,
+                onChanged: (value) {
+                  Provider.of<Settings>(context, listen: false)
+                      .useStorageService = value;
+                },
+              )
+            ],
           )
         ],
       ),

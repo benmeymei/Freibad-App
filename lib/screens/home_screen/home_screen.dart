@@ -31,9 +31,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void didChangeDependencies() {
-    print("check");
     if (isInitState) {
-      //check if data requires an update because the settings changed
       getLocalData =
           Provider.of<SessionData>(context, listen: false).fetchAndSetData();
       getWeather =
@@ -52,6 +50,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: Consumer<Settings>(
         builder: (_, settings, __) {
           if (!settings.isUpdated) {
+            //check if data requires an update because the settings changed
             getLocalData = Provider.of<SessionData>(context, listen: false)
                 .fetchAndSetData();
             getWeather = Provider.of<WeatherData>(context, listen: false)

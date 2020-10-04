@@ -10,23 +10,29 @@ import 'package:freibad_app/services/storage_service.dart';
 import 'package:uuid/uuid.dart';
 
 class SessionData with ChangeNotifier {
+  final bool useAPIService;
+  final bool useStorageService;
+
   List<Person> _persons;
   List<Session> _appointments;
   List<Request> _requests;
+  List<String> _availableLocations;
 
   List<Person> get persons => [..._persons];
   List<Session> get appointments => [..._appointments];
   List<Request> get requests => [..._requests];
+  List<String> get availableLocations => [..._availableLocations];
 
-  LocalStorage db = LocalStorage();
-  //use LocalStorage for production, use FakeLocalStorage for testing
+  StorageService db;
+  //use LocalStorage for production, use FakeLocalStorage for web
 
   Uuid uuid = Uuid(); // for creating unique ids
 
-  bool useFakeAPIService;
-
-  SessionData({this.useFakeAPIService = false}) {
-    print("wir bauen");
+  SessionData({this.useAPIService = false, this.useStorageService = false}) {
+    if (useStorageService)
+      db = LocalStorage();
+    else
+      db = FakeLocalStorage();
   }
 
   Future<void> fetchAndSetData() async {
@@ -36,21 +42,26 @@ class SessionData with ChangeNotifier {
     _requests = await db.getRequests() ?? [];
     developer.log('fetching and setting local data finished');
 
+    //look for updates for requests
     for (Request request in _requests) {
+      //TODO REMOVE
+      if (true) break;
       if (request.hasFailed) continue;
 
       try {
-        Session session = (useFakeAPIService
-            ? await FakeAPIService.getReservation(request.id)
-            : await APIService.getReservation(request.id));
+        Session session = (useAPIService
+            ? await APIService.getReservation(request.id)
+            : await FakeAPIService.getReservation(request.id));
 
         if (session is Request) continue;
 
         _addAppointment(
-            id: session.id,
-            accessList: session.accessList,
-            startTime: session.startTime,
-            endTime: session.endTime);
+          id: session.id,
+          accessList: session.accessList,
+          startTime: session.startTime,
+          endTime: session.endTime,
+          location: session.location,
+        );
         deleteRequest(session.id);
       } catch (exception) {
         developer.log('Something went wrong updating the pending session',
@@ -59,6 +70,10 @@ class SessionData with ChangeNotifier {
       }
     }
     developer.log('finished updating pending sessions');
+    _availableLocations = useAPIService
+        ? await APIService.availableLocations()
+        : await FakeAPIService.availableLocations();
+    developer.log('finished receiving available locations');
     notifyListeners();
   }
 
@@ -91,9 +106,9 @@ class SessionData with ChangeNotifier {
         email: email);
 
     try {
-      bool apiCallSuccessful = (useFakeAPIService
-          ? await FakeAPIService.addPerson(person)
-          : await APIService.addPerson(person));
+      bool apiCallSuccessful = (useAPIService
+          ? await APIService.addPerson(person)
+          : await FakeAPIService.addPerson(person));
       if (!apiCallSuccessful) return;
       db.addPerson(person);
       _persons.add(person);
@@ -129,9 +144,9 @@ class SessionData with ChangeNotifier {
       email: email ?? currentPerson.email,
     );
     try {
-      bool apiCallSuccessful = useFakeAPIService
-          ? await FakeAPIService.editPerson(updatedPerson)
-          : await APIService.editPerson(updatedPerson);
+      bool apiCallSuccessful = useAPIService
+          ? await APIService.editPerson(updatedPerson)
+          : await FakeAPIService.editPerson(updatedPerson);
       if (!apiCallSuccessful) return;
 
       db.updatePerson(updatedPerson);
@@ -150,13 +165,14 @@ class SessionData with ChangeNotifier {
     @required List<Map<String, String>> accessList,
     @required DateTime startTime,
     @required DateTime endTime,
+    @required String location,
   }) async {
     Appointment appointment = Appointment(
-      id: id ?? uuid.v1(),
-      accessList: accessList,
-      startTime: startTime,
-      endTime: endTime,
-    );
+        id: id ?? uuid.v1(),
+        accessList: accessList,
+        startTime: startTime,
+        endTime: endTime,
+        location: location);
     try {
       db.addSession(appointment);
       _appointments.add(appointment);
@@ -172,17 +188,19 @@ class SessionData with ChangeNotifier {
     @required List<Map<String, String>> accessList,
     @required DateTime startTime,
     @required DateTime endTime,
+    @required String location,
   }) async {
     Request request = Request(
         id: uuid.v1(),
         accessList: accessList,
         startTime: startTime,
         endTime: endTime,
-        hasFailed: false);
+        hasFailed: false,
+        location: location);
     try {
-      Session resultSession = useFakeAPIService
-          ? await FakeAPIService.makeReservation(request)
-          : await APIService.makeReservation(request);
+      Session resultSession = useAPIService
+          ? await APIService.makeReservation(request)
+          : await FakeAPIService.makeReservation(request);
 
       db.addSession(resultSession);
 
@@ -242,9 +260,9 @@ class SessionData with ChangeNotifier {
       _appointments.removeAt(elementPos);
       notifyListeners();
 
-      bool apiCallSuccessful = useFakeAPIService
-          ? await FakeAPIService.deleteReservation(appointmentId)
-          : await APIService.deleteReservation(appointmentId);
+      bool apiCallSuccessful = useAPIService
+          ? await APIService.deleteReservation(appointmentId)
+          : await FakeAPIService.deleteReservation(appointmentId);
       if (!apiCallSuccessful) {
         //api call not successful, add appointment back to list
         developer.log("api call not successful");
@@ -272,9 +290,9 @@ class SessionData with ChangeNotifier {
     try {
       _requests.removeAt(elementPos);
       notifyListeners();
-      bool apiCallSuccessful = useFakeAPIService
-          ? await FakeAPIService.deleteReservation(requestId)
-          : await APIService.deleteReservation(requestId);
+      bool apiCallSuccessful = useAPIService
+          ? await APIService.deleteReservation(requestId)
+          : await FakeAPIService.deleteReservation(requestId);
 
       if (!apiCallSuccessful) {
         //api call not successful, add request back to list

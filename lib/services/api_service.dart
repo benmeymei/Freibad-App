@@ -43,8 +43,13 @@ class APIService extends API {
     return ReserveAPIService.deleteReservation(sessionId);
   }
 
-  static List<List<DateTime>> availableTimeBlocks(DateTime date) {
-    return ReserveAPIService.availableTimeBlocks(date);
+  static Future<List<String>> availableLocations() {
+    return ReserveAPIService.availableLocations();
+  }
+
+  static Future<List<List<DateTime>>> availableTimeBlocks(
+      DateTime date, String location) {
+    return ReserveAPIService.availableTimeBlocks(date, location);
   }
 }
 
@@ -53,8 +58,6 @@ class FakeAPIService extends API {
     double requestLocationLat,
     double requestLocationLon,
   ) async {
-    print(await FakeWeatherAPIService.fetchWeather(
-        requestLocationLat, requestLocationLon));
     return FakeWeatherAPIService.fetchWeather(
         requestLocationLat, requestLocationLon);
   }
@@ -79,7 +82,12 @@ class FakeAPIService extends API {
     return FakeReserveAPIService.deleteReservation(sessionId);
   }
 
-  static List<List<DateTime>> availableTimeBlocks(DateTime date) {
-    return FakeReserveAPIService.availableTimeBlocks(date);
+  static Future<List<String>> availableLocations() {
+    return FakeReserveAPIService.availableLocations();
+  }
+
+  static Future<List<List<DateTime>>> availableTimeBlocks(
+      DateTime date, String location) {
+    return FakeReserveAPIService.availableTimeBlocks(date, location);
   }
 }

@@ -9,23 +9,35 @@ import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
 
 abstract class ReserveAPI {
-  static List<List<DateTime>> availableTimeBlocks(DateTime date) {
+  static Future<List<List<DateTime>>> availableTimeBlocks(
+      DateTime date, String location) {
     //could be advanced with more conditions (like local holidays), for that reason placed in API_SERVICE
 
     String formattedDate = DateFormat('EEEEE').format(date);
 
     if (formattedDate == 'Saturday' || formattedDate == 'Sunday') {
-      return [
+      return Future.value([
         [addHour(date, 8), addHour(date, 13, minutes: 30)],
         [addHour(date, 14, minutes: 30), addHour(date, 20)],
-      ];
+      ]);
     } else {
-      return [
+      return Future.value([
         [addHour(date, 6), addHour(date, 9)],
         [addHour(date, 10), addHour(date, 16)],
         [addHour(date, 17), addHour(date, 20)],
-      ];
+      ]);
     }
+  }
+
+  static Future<List<String>> availableLocations() {
+    return Future.value([
+      'Strandbad Lörick',
+      'Freibad Rheinbad',
+      'Freibad Allwetterbad Flingern',
+      'Freizeitbad Düsselstrand',
+      '33-Meter Schwimmhalle Rheinbad',
+      'Familienbad Niederheid',
+    ]);
   }
 
   //Helper function
@@ -44,7 +56,6 @@ class ReserveAPIService extends ReserveAPI {
   static Future<bool> addUser(Person user) async {
     String url =
         '$baseUrl/user/${user.id}?forename=${user.forename}&name=${user.name}&adress=${user.streetName} ${user.streetNumber}&postcode=${user.postcode}&city=${user.city}&phone=${user.phoneNumber}&email=${user.email}';
-
     try {
       final addUserResponse = await http.post(
         url,
@@ -184,7 +195,7 @@ class ReserveAPIService extends ReserveAPI {
     String sessionId = decodedResponse['sessionId'];
     DateTime startTime = DateTime.parse(decodedResponse['startTime']);
     DateTime endTime = DateTime.parse(decodedResponse['endTime']);
-    String pool = decodedResponse['pool'];
+    String location = decodedResponse['pool'];
     int status = decodedResponse['status'];
     List<dynamic> members = decodedResponse['members'];
 
@@ -197,10 +208,12 @@ class ReserveAPIService extends ReserveAPI {
             .add({'person': member['userId'], 'code': member['entryCode']});
       }
       return Appointment(
-          id: sessionId,
-          accessList: accessList,
-          startTime: startTime,
-          endTime: endTime);
+        id: sessionId,
+        accessList: accessList,
+        startTime: startTime,
+        endTime: endTime,
+        location: location,
+      );
     } else {
       //0 request is pending, negative request unsuccessful
       List<Map<String, String>> accessList = [];
@@ -213,49 +226,60 @@ class ReserveAPIService extends ReserveAPI {
           accessList: accessList,
           startTime: startTime,
           endTime: endTime,
-          hasFailed: hasFailed);
+          hasFailed: hasFailed,
+          location: location);
     }
   }
 
-  static List<List<DateTime>> availableTimeBlocks(DateTime date) {
-    return ReserveAPI.availableTimeBlocks(date);
+  static Future<List<String>> availableLocations() {
+    return ReserveAPI.availableLocations();
+  }
+
+  static Future<List<List<DateTime>>> availableTimeBlocks(
+      DateTime date, String location) {
+    return ReserveAPI.availableTimeBlocks(date, location);
   }
 }
 
 class FakeReserveAPIService extends ReserveAPI {
   static Future<bool> addUser(Person user) {
-    return Future.delayed(Duration(seconds: 5), () => true);
+    return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
   static Future<bool> editUser(Person user) {
-    return Future.delayed(Duration(seconds: 5), () => true);
+    return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
   static Future<Session> makeReservation(Session session) {
-    return Future.delayed(Duration(seconds: 5), () => session);
+    return Future.delayed(Duration(milliseconds: 1), () => session);
   }
 
   static Future<Session> getReservation(String sessionId) {
     return Future.delayed(
       Duration(seconds: 5),
       () => Appointment(
-        id: sessionId,
-        accessList: [
-          {'person0': 'TEST'}
-        ],
-        startTime: DateTime.now(),
-        endTime: DateTime.now().add(
-          Duration(hours: 1),
-        ),
-      ),
+          id: sessionId,
+          accessList: [
+            {'person0': 'TEST'}
+          ],
+          startTime: DateTime.now(),
+          endTime: DateTime.now().add(
+            Duration(hours: 1),
+          ),
+          location: 'TEST_LOCATION'),
     );
   }
 
   static Future<bool> deleteReservation(String sessionId) {
-    return Future.delayed(Duration(seconds: 5), () => true);
+    return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
-  static List<List<DateTime>> availableTimeBlocks(DateTime date) {
-    return ReserveAPI.availableTimeBlocks(date);
+  static Future<List<String>> availableLocations() {
+    return ReserveAPI.availableLocations();
+  }
+
+  static Future<List<List<DateTime>>> availableTimeBlocks(
+      DateTime date, String location) {
+    return ReserveAPI.availableTimeBlocks(date, location);
   }
 }

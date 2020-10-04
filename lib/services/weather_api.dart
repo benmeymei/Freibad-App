@@ -29,7 +29,6 @@ class WeatherAPIService extends WeatherAPI {
           'request to the ClimaCell API finished, Statuscode: ${weatherResponse.statusCode}');
       if (weatherResponse.statusCode == 200) {
         List<dynamic> decodedResponse = jsonDecode(weatherResponse.body);
-
         for (Map<String, dynamic> dailyForecast in decodedResponse) {
           //get the max temp
           List<dynamic> listOfTemp = dailyForecast['temp'];
@@ -38,6 +37,13 @@ class WeatherAPIService extends WeatherAPI {
           DateTime dailyTempMaxDateTime =
               DateTime.parse(dailyTempMaxInfo['observation_time']);
           double dailyTempMax = dailyTempMaxInfo['max']['value'].toDouble();
+          dailyTempMaxDateTime = dailyTempMaxDateTime.subtract(Duration(
+              hours:
+                  2)); //from ClimaCell Documentation: Daily results are returned and calculated based on 6am to 6am local time periods (meteorological timeframe), however the response is always in UTC (GMT+0). Therefore, requesting forecast for locations with negative GMT offset may provide the first element with yesterday's date.
+          if (dailyTempMaxDateTime.hour ==
+              0) //in case the max time is shifted from 31.12.1999:0hours to 1.1.2000:2hours, the max date time still remains on 1.1.2000 although is should be in 1999
+            dailyTempMaxDateTime = dailyTempMaxDateTime.subtract(Duration(
+                minutes: 30)); //solving by removing additional 30 minutes
 
           //get weather code
           String dailyWeatherCode = dailyForecast['weather_code']['value'];

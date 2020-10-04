@@ -11,7 +11,7 @@ class CodesSubscreen extends StatefulWidget {
 }
 
 class _CodesSubscreenState extends State<CodesSubscreen> {
-  List<Session> sessions;
+  List<Session> sessions = [];
 
   @override
   Widget build(BuildContext context) {

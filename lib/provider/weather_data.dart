@@ -6,14 +6,13 @@ import 'package:freibad_app/services/api_service.dart';
 import 'package:mdi/mdi.dart';
 
 class WeatherData with ChangeNotifier {
+  final bool useAPIService;
   DateTime lastWeatherRefresh;
   List<Map<String, dynamic>> rawWeather;
   Map<DateTime, Weather>
       weather; //key is the day of the weather forecast at zero o'clock
 
-  bool useFakeAPIService;
-
-  WeatherData({this.useFakeAPIService = false});
+  WeatherData({this.useAPIService = false});
 
   Future<Map<DateTime, Weather>> getWeatherForecast() async {
     if (lastWeatherRefresh == null ||
@@ -42,7 +41,8 @@ class WeatherData with ChangeNotifier {
     Location location = Location();
     await location.requestPermission();
 
-    if (await location.serviceEnabled()) {
+    if (await location.hasPermission() == PermissionStatus.granted &&
+        await location.serviceEnabled()) {
       LocationData userLocation = await location.getLocation();
       requestLocationLat = userLocation.latitude;
       requestLocationLon = userLocation.longitude;
@@ -52,12 +52,11 @@ class WeatherData with ChangeNotifier {
     }
 
     try {
-      useFakeAPIService
-          ? rawWeather = await FakeAPIService.fetchWeather(
+      useAPIService
+          ? rawWeather = await APIService.fetchWeather(
               requestLocationLat, requestLocationLon)
-          : rawWeather = await APIService.fetchWeather(
+          : rawWeather = await FakeAPIService.fetchWeather(
               requestLocationLat, requestLocationLon);
-
       developer.log("API responded");
       weather = {};
       for (int i = 0; i < rawWeather.length; i++) {

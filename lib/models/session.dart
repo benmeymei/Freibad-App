@@ -5,12 +5,14 @@ abstract class Session implements Comparable<Session> {
   final List<Map<String, String>> accessList;
   final DateTime startTime;
   final DateTime endTime;
+  final String location;
 
   Session({
     @required this.id,
     @required this.accessList,
     @required this.startTime,
     @required this.endTime,
+    @required this.location,
   });
 
   @override

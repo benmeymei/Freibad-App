@@ -4,6 +4,7 @@ import 'package:date_picker_timeline/date_picker_timeline.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/weather.dart';
 import 'package:freibad_app/provider/session_data.dart';
+import 'package:freibad_app/provider/settings.dart';
 import 'package:freibad_app/provider/weather_data.dart';
 
 import 'package:freibad_app/screens/home_screen/components/person_detail_dialog.dart';
@@ -20,6 +21,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
   DateTime sessionDate;
   DateTime startTime;
   DateTime endTime;
+  String location;
   List<Person> selectedPersons = [];
   Map<DateTime, Weather> cachedWeather;
   DateTime currentMaxTempDateTime;
@@ -33,6 +35,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
     return SafeArea(
       child: SingleChildScrollView(
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: <Widget>[
             FutureBuilder(
               initialData: cachedWeather,
@@ -63,7 +66,20 @@ class _PickSubscreenState extends State<PickSubscreen> {
                 return buildDateSelector(cachedWeather);
               },
             ),
-            buildTimeSelector(sessionDate, maxTemp: currentMaxTempDateTime),
+            if (sessionDate != null && location != null)
+              FutureBuilder(
+                future: Provider.of<Settings>(context).useServer
+                    ? APIService.availableTimeBlocks(sessionDate, location)
+                    : FakeAPIService.availableTimeBlocks(sessionDate, location),
+                builder: (context, snapshot) {
+                  if (snapshot.hasData)
+                    return buildTimeSelector(snapshot.data,
+                        maxTemp: currentMaxTempDateTime);
+                  else
+                    return Container();
+                },
+              ),
+            buildLocationSelector(),
             buildPersonSelector(context),
             buildSubmitButton(context),
           ],
@@ -76,6 +92,10 @@ class _PickSubscreenState extends State<PickSubscreen> {
     bool hasWeather = weatherForecast != null && weatherForecast.length > 0;
 
     double dateInfoWidgetHeight = 11.5;
+    double selectorHeight = 100;
+    double selectorWidth = 75;
+
+    int numberOfDays;
 
     Color selectedColor = Theme.of(context).primaryColor;
     Color unselectedColor = Colors.white;
@@ -107,81 +127,107 @@ class _PickSubscreenState extends State<PickSubscreen> {
         },
       );
 
-    return DatePicker(
-      DateTime.now(),
-      key: ObjectKey(
-          cachedWeather), //TODO figure out why UniqueKey does not work here? ;)
-      daysCount: hasWeather ? weatherForecast.length : 15,
-      onDateChange: (selectedDate) {
-        setState(
-          () {
-            startTime = null;
-            sessionDate = selectedDate;
-          },
-        );
-      },
-      selectedTextColor: selectedColor,
-      unselectedTextColor: Colors.white,
-      selectedBackgroundColor: Colors.transparent,
-      height: 90,
-      width: 75,
-      dateInfoHeight: dateInfoWidgetHeight,
-      unselectedDateInfo: unselectedDateInfo,
-      selectedDateInfo: selectedDateInfo,
+    numberOfDays = hasWeather ? weatherForecast.length : 15;
+
+    return Container(
+      width: selectorWidth * (numberOfDays + 1) +
+          20, //define width, so the widget can be centered, 20px for edge
+      child: DatePicker(
+        DateTime.now(),
+        key: ObjectKey(
+            cachedWeather), //TODO figure out why UniqueKey does not work here? ;)
+        daysCount: numberOfDays,
+        onDateChange: (selectedDate) {
+          setState(
+            () {
+              startTime = null;
+              sessionDate = selectedDate;
+            },
+          );
+        },
+        selectedTextColor: selectedColor,
+        unselectedTextColor: Colors.white,
+        selectedBackgroundColor: Colors.transparent,
+        height: selectorHeight,
+        width: selectorWidth,
+        dateInfoHeight: dateInfoWidgetHeight,
+        unselectedDateInfo: unselectedDateInfo,
+        selectedDateInfo: selectedDateInfo,
+      ),
     );
   }
 
-  Widget buildTimeSelector(DateTime selectedDate, {DateTime maxTemp}) {
-    if (selectedDate != null) {
-      List<List<DateTime>> timeBlocks =
-          APIService.availableTimeBlocks(selectedDate);
-
-      //find time closest to the best weather
-      DateTime bestStartTime;
-      if (maxTemp != null) {
-        Duration shortestGap;
-        for (List<DateTime> timeBlock in timeBlocks) {
-          for (DateTime time in timeBlock) {
-            Duration timeDifference = time.difference(maxTemp).abs();
-            if (shortestGap == null) {
-              shortestGap = timeDifference;
-              bestStartTime = timeBlock[0];
-            } else if (shortestGap > timeDifference) {
-              shortestGap = timeDifference;
-              bestStartTime = timeBlock[0];
-            }
+  Widget buildTimeSelector(List<List<DateTime>> timeBlocks,
+      {DateTime maxTemp}) {
+    //find time closest to the best weather
+    DateTime bestStartTime;
+    if (maxTemp != null) {
+      Duration shortestGap;
+      for (List<DateTime> timeBlock in timeBlocks) {
+        for (DateTime time in timeBlock) {
+          Duration timeDifference = time.difference(maxTemp).abs();
+          if (shortestGap == null) {
+            shortestGap = timeDifference;
+            bestStartTime = timeBlock[0];
+          } else if (shortestGap > timeDifference) {
+            shortestGap = timeDifference;
+            bestStartTime = timeBlock[0];
           }
         }
-        //developer.log('$bestStartTime recommended session start time for maxTemp: $maxTemp (according to the ClimaCellApi)');
       }
-      return Column(
-        children: timeBlocks
-            .map(
-              (time) => SizedBox(
-                width: double.infinity,
-                child: FlatButton(
-                  onPressed: () {
-                    setState(() {
-                      startTime = time[0];
-                      endTime = time[1];
-                    });
-                  },
-                  textColor:
-                      startTime != null && startTime.compareTo(time[0]) == 0
-                          ? Theme.of(context).primaryColor
-                          : time[0] == bestStartTime
-                              ? Theme.of(context).primaryColor.withOpacity(0.5)
-                              : Colors.white,
-                  child: Text(
-                    '${DateFormat.Hm().format(time[0])} - ${DateFormat.Hm().format(time[1])}',
-                  ),
+      developer.log(
+          '$bestStartTime recommended session start time for maxTemp: $maxTemp (according to the ClimaCellApi)');
+    }
+    return Column(
+      children: timeBlocks
+          .map(
+            (time) => SizedBox(
+              width: double.infinity,
+              child: FlatButton(
+                onPressed: () {
+                  setState(() {
+                    startTime = time[0];
+                    endTime = time[1];
+                  });
+                },
+                textColor:
+                    startTime != null && startTime.compareTo(time[0]) == 0
+                        ? Theme.of(context).primaryColor
+                        : time[0] == bestStartTime
+                            ? Theme.of(context).primaryColor.withOpacity(0.5)
+                            : Colors.white,
+                child: Text(
+                  '${DateFormat.Hm().format(time[0])} - ${DateFormat.Hm().format(time[1])}',
                 ),
               ),
-            )
-            .toList(),
-      );
-    } else
-      return Container();
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Widget buildLocationSelector() {
+    List<String> availableLocations =
+        Provider.of<SessionData>(context).availableLocations;
+    location = location ?? availableLocations[0];
+    return DropdownButton(
+      value: location,
+      dropdownColor: Theme.of(context).cardColor,
+      items: List.generate(
+        availableLocations.length,
+        (i) => DropdownMenuItem(
+          value: availableLocations[i],
+          child: Text(availableLocations[i]),
+        ),
+      ),
+      onChanged: (value) {
+        setState(
+          () {
+            location = value;
+          },
+        );
+      },
+    );
   }
 
   Widget buildPersonSelector(BuildContext context) {
@@ -245,8 +291,10 @@ class _PickSubscreenState extends State<PickSubscreen> {
           if (sessionDate != null &&
               startTime != null &&
               selectedPersons != null &&
+              location != null &&
               selectedPersons.isNotEmpty) {
-            developer.log("request for $selectedPersons on $startTime");
+            developer.log(
+                "request for $selectedPersons on $startTime for $location");
 
             Scaffold.of(context).showSnackBar(
               SnackBar(
@@ -257,11 +305,12 @@ class _PickSubscreenState extends State<PickSubscreen> {
             Provider.of<SessionData>(context, listen: false).addRequest(
               accessList: [
                 for (Person person in selectedPersons) ...{
-                  {'person': person.id}
+                  {'person': person.id, 'code': ''}
                 }
               ],
               startTime: startTime,
               endTime: endTime,
+              location: location,
             );
             setState(() {
               startTime = null;
@@ -272,7 +321,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
           } else {
             Scaffold.of(context).showSnackBar(
               SnackBar(
-                content: Text("Add date/person"),
+                content: Text("Add date/location/person"),
               ),
             );
           }

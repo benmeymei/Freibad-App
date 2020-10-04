@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:freibad_app/provider/session_data.dart';
@@ -15,22 +16,31 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
+  final bool useServerAPIService = false;
+  final bool useWeatherAPIService = false;
+  final bool useStorageService =
+      !kIsWeb; //storage service functions only on mobile
+
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(
-          create: (_) => Settings(),
+          create: (_) => Settings(
+              useServerAPIService, useWeatherAPIService, useStorageService),
         ),
         ChangeNotifierProxyProvider<Settings, SessionData>(
-          update: (_, settings, __) =>
-              SessionData(useFakeAPIService: !settings.useServer),
-          create: (_) => SessionData(useFakeAPIService: false),
+          update: (_, settings, __) => SessionData(
+              useAPIService: settings.useServer,
+              useStorageService: settings.useStorageService),
+          create: (_) => SessionData(
+              useAPIService: useServerAPIService,
+              useStorageService: useStorageService),
         ),
         ChangeNotifierProxyProvider<Settings, WeatherData>(
           update: (_, settings, __) =>
-              WeatherData(useFakeAPIService: !settings.useWeatherAPI),
-          create: (_) => WeatherData(useFakeAPIService: false),
+              WeatherData(useAPIService: settings.useWeatherAPI),
+          create: (_) => WeatherData(useAPIService: useWeatherAPIService),
         ),
       ],
       child: MaterialApp(

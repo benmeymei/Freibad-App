@@ -33,10 +33,10 @@ class LocalStorage extends StorageService {
         "CREATE TABLE persons(id TEXT PRIMARY KEY, forename TEXT, name TEXT, streetName TEXT, streetNumber TEXT, postCode INTEGER, city TEXT, phoneNumber TEXT, email TEXT)",
       );
       Future<void> createAppointmentsTable = db.execute(
-        "CREATE TABLE appointments(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT)",
+        "CREATE TABLE appointments(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, location TEXT)",
       );
       Future<void> createRequestsTable = db.execute(
-        "CREATE TABLE requests(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT, hasFailed INTEGER)",
+        "CREATE TABLE requests(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT, hasFailed INTEGER, location TEXT)",
       );
       Future<void> createAccessTable = db.execute(
         "CREATE TABLE access(sessionId TEXT, person TEXT, accessCode TEXT, PRIMARY KEY(sessionId, person))",
@@ -94,6 +94,7 @@ class LocalStorage extends StorageService {
             accessList: await _getAccessList(content[i]['id']),
             startTime: DateTime.parse(content[i]['startTime']),
             endTime: DateTime.parse(content[i]['endTime']),
+            location: content[i]['location'],
           )
         }.toList()
     ];
@@ -107,11 +108,13 @@ class LocalStorage extends StorageService {
       for (int i = 0; i < content.length; i++)
         ...{
           Request(
-              id: content[i]['id'],
-              accessList: await _getAccessList(content[i]['id']),
-              startTime: DateTime.parse(content[i]['startTime']),
-              endTime: DateTime.parse(content[i]['endTime']),
-              hasFailed: content[i]['hasFailed'] == 0) //0 == TRUE
+            id: content[i]['id'],
+            accessList: await _getAccessList(content[i]['id']),
+            startTime: DateTime.parse(content[i]['startTime']),
+            endTime: DateTime.parse(content[i]['endTime']),
+            hasFailed: content[i]['hasFailed'] == 0,
+            location: content[i]['location'],
+          ) //0 == TRUE
         }.toList()
     ];
   }
@@ -224,7 +227,7 @@ class LocalStorage extends StorageService {
 
 class FakeLocalStorage extends StorageService {
   Future<void> setUpDB() {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<List<Person>> getPersons() {
@@ -240,31 +243,31 @@ class FakeLocalStorage extends StorageService {
   }
 
   Future<void> addPerson(Person person) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<void> updatePerson(Person person) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<void> addSession(Session session) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<void> updateRequest(Request request) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<void> deletePerson(String personID) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<void> deleteAppointment(String appointmentID) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 
   Future<void> deleteRequest(String requestID) {
-    return Future.delayed(Duration(milliseconds: 10));
+    return Future.delayed(Duration(milliseconds: 1));
   }
 }
 
@@ -294,21 +297,21 @@ class TestData {
     for (int i = 0; i < AMOUNT_APPOINTMENTS; i++)
       ...{
         Appointment(
-          id: 'session$i',
-          accessList: [
-            {
-              'person': 'person0',
-              'code': 'code$i',
-            },
-            if (i % 2 == 0)
+            id: 'session$i',
+            accessList: [
               {
-                'person': 'person1',
+                'person': 'person0',
                 'code': 'code$i',
               },
-          ],
-          startTime: DateTime.now(),
-          endTime: DateTime.now(),
-        )
+              if (i % 2 == 0)
+                {
+                  'person': 'person1',
+                  'code': 'code$i',
+                },
+            ],
+            startTime: DateTime.now(),
+            endTime: DateTime.now(),
+            location: "TEST_LOCATION")
       }.toList(),
   ];
 
@@ -316,20 +319,20 @@ class TestData {
     for (int i = 0; i < AMOUNT_REQUESTS; i++)
       ...{
         Request(
-          id: 'request$i',
-          hasFailed: (i % 2 == 1),
-          accessList: [
-            {
-              'person': 'person0',
-            },
-            if (i % 2 == 1)
+            id: 'request$i',
+            hasFailed: (i % 2 == 1),
+            accessList: [
               {
-                'person': 'person1',
+                'person': 'person0',
               },
-          ],
-          startTime: DateTime.now(),
-          endTime: DateTime.now(),
-        )
+              if (i % 2 == 1)
+                {
+                  'person': 'person1',
+                },
+            ],
+            startTime: DateTime.now(),
+            endTime: DateTime.now(),
+            location: "TEST_LOCATION")
       }.toList(),
   ];
 }
