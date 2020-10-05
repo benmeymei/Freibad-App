@@ -135,7 +135,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
       child: DatePicker(
         DateTime.now(),
         key: ObjectKey(
-            cachedWeather), //TODO figure out why UniqueKey does not work here? ;)
+            cachedWeather), //TODO figure out why UniqueKey does not work here?
         daysCount: numberOfDays,
         onDateChange: (selectedDate) {
           setState(
@@ -175,8 +175,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
           }
         }
       }
-      developer.log(
-          '$bestStartTime recommended session start time for maxTemp: $maxTemp (according to the ClimaCellApi)');
+      //developer.log('$bestStartTime recommended session start time for maxTemp: $maxTemp (according to the ClimaCellApi)');
     }
     return Column(
       children: timeBlocks

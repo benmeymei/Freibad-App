@@ -35,17 +35,22 @@ class _SessionPresenterState extends State<SessionPresenter> {
   String date;
   String startTime;
   String endTime;
+  String location;
+  MediaQueryData _mediaQueryData;
+  bool centerTimeWidget = false;
 
   @override
   void initState() {
     date = DateFormat('EEE, d LLL').format(widget.session.startTime);
     startTime = DateFormat.Hm().format(widget.session.startTime);
     endTime = DateFormat.Hm().format(widget.session.endTime);
+    location = widget.session.location;
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
+    _mediaQueryData = MediaQuery.of(context);
     if (isInitState) {
       for (Map<String, String> access in widget.session.accessList) {
         accessList.add(
@@ -58,6 +63,12 @@ class _SessionPresenterState extends State<SessionPresenter> {
       }
       isInitState = false;
     }
+    if (_mediaQueryData.size.width > _mediaQueryData.size.height &&
+        _mediaQueryData.size.width > 500) //only looks good on bigger screens
+      centerTimeWidget = true;
+    else
+      centerTimeWidget = false;
+
     super.didChangeDependencies();
   }
 
@@ -84,44 +95,63 @@ class _SessionPresenterState extends State<SessionPresenter> {
             child: Container(
               height: 100,
               child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: <Widget>[
-                      showSessionStatus(28),
+                      Expanded(
+                        flex: centerTimeWidget ? 1 : 0,
+                        child: Align(
+                            alignment: Alignment.centerLeft,
+                            child: showSessionStatus(28)),
+                      ),
                       Text(
                         '$startTime to $endTime',
                         style: TextStyle(fontSize: 28),
                       ),
-                      Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: <Widget>[
-                          Text(
-                            '$date',
-                            style: TextStyle(fontSize: 14),
-                          ),
-                          widget.weather != null
-                              ? Row(
-                                  children: <Widget>[
-                                    Icon(
-                                      widget.weather.skyIcon,
-                                      color: Colors.white,
-                                      size: 14,
-                                    ),
-                                    Text(
-                                      '${widget.weather.maxTemp} ${widget.weather.tempUnit}',
-                                      style: TextStyle(fontSize: 14),
-                                    )
-                                  ],
-                                )
-                              : Text(
-                                  'No Weather Data',
+                      Expanded(
+                        flex: centerTimeWidget ? 1 : 0,
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: Container(
+                            width: 70,
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceAround,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: <Widget>[
+                                Text(
+                                  '$date',
                                   style: TextStyle(fontSize: 14),
                                 ),
-                        ],
+                                widget.weather != null
+                                    ? Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: <Widget>[
+                                          Icon(
+                                            widget.weather.skyIcon,
+                                            color: Colors.white,
+                                            size: 14,
+                                          ),
+                                          Text(
+                                            '${widget.weather.maxTemp} ${widget.weather.tempUnit}',
+                                            style: TextStyle(fontSize: 14),
+                                          )
+                                        ],
+                                      )
+                                    : Text(
+                                        'No Weather Data',
+                                        style: TextStyle(fontSize: 14),
+                                      ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ],
                   ),
+                  Text(location),
                   showAccessList(accessList),
                 ],
               ),

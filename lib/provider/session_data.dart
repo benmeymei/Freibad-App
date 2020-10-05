@@ -44,8 +44,8 @@ class SessionData with ChangeNotifier {
 
     //look for updates for requests
     for (Request request in _requests) {
-      //TODO REMOVE
-      if (true) break;
+      if (!useStorageService || kIsWeb)
+        break; //do not make server request with wrong data or if data gets loaded from the server anyway
       if (request.hasFailed) continue;
 
       try {
