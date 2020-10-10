@@ -7,7 +7,7 @@ import 'package:freibad_app/services/weather_api.dart';
 abstract class API {}
 
 class APIService extends API {
-  static Future<String> registerUser(String name, String password) async {
+  static Future<bool> registerUser(String name, String password) async {
     try {
       return ReserveAPIService.registerUser(name, password);
     } catch (exception) {
@@ -15,7 +15,7 @@ class APIService extends API {
     }
   }
 
-  static Future<List<dynamic>> loginUser(String name, String password) async {
+  static Future<String> loginUser(String name, String password) async {
     try {
       return ReserveAPIService.loginUser(name, password);
     } catch (exception) {
@@ -78,11 +78,11 @@ class FakeAPIService extends API {
         requestLocationLat, requestLocationLon);
   }
 
-  static Future<String> registerUser(String name, String password) {
+  static Future<bool> registerUser(String name, String password) {
     return FakeReserveAPIService.registerUser(name, password);
   }
 
-  static Future<List<dynamic>> loginUser(String name, String password) {
+  static Future<String> loginUser(String name, String password) {
     return FakeReserveAPIService.loginUser(name, password);
   }
 

@@ -5,7 +5,9 @@ class CustomTextField extends StatefulWidget {
   final TextEditingController controller;
   final TextInputType keyboardType;
   final bool readOnly;
+  final bool obscureText;
   final String Function(String) validator;
+  final void Function(String) onSaved;
 
   static String defaultValidator(String value) {
     if (value.isEmpty) {
@@ -14,13 +16,18 @@ class CustomTextField extends StatefulWidget {
     return null;
   }
 
+  static void defaultOnSaved(String value) {}
+
   CustomTextField({
     @required this.labelText,
-    @required this.controller,
-    @required this.readOnly,
+    this.controller,
+    this.readOnly = false,
+    this.obscureText = false,
     this.keyboardType = TextInputType.text,
     String Function(String) validator,
-  }) : validator = validator ?? defaultValidator;
+    void Function(String) onSaved,
+  })  : validator = validator ?? defaultValidator,
+        onSaved = onSaved ?? defaultOnSaved;
 
   @override
   _CustomTextFieldState createState() => _CustomTextFieldState();
@@ -48,8 +55,10 @@ class _CustomTextFieldState extends State<CustomTextField> {
       focusNode: _focusNode,
       controller: widget.controller,
       readOnly: widget.readOnly,
+      obscureText: widget.obscureText,
       keyboardType: widget.keyboardType,
       validator: widget.validator,
+      onSaved: widget.onSaved,
       decoration: InputDecoration(
         labelText: widget.labelText,
         labelStyle: TextStyle(

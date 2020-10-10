@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
+import 'package:freibad_app/models/httpException.dart';
 import 'package:freibad_app/services/api_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -15,10 +16,12 @@ class AuthData with ChangeNotifier {
   Timer _authTimer;
 
   bool get isAuth {
-    return _token != null;
+    return (_token != null && _token.isNotEmpty);
   }
 
   String get token {
+    developer.log('Token: $_token');
+
     if (_expiryDate != null &&
         _token != null &&
         _expiryDate.isAfter(DateTime.now())) {
@@ -28,23 +31,26 @@ class AuthData with ChangeNotifier {
     return '';
   }
 
-  Future<Map<String, dynamic>> register(String name, String password) async {
-    String response = useAPIService
-        ? await APIService.registerUser(name, password)
-        : await FakeAPIService.registerUser(name, password);
-
-    if (response != 'successful') {
-      return {'reason': response, 'success': false};
+  Future<bool> register(String name, String password) async {
+    bool response;
+    try {
+      response = useAPIService
+          ? await APIService.registerUser(name, password)
+          : await FakeAPIService.registerUser(name, password);
+    } on HttpException catch (exception) {
+      throw exception;
+    } catch (exception) {
+      throw exception;
     }
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString('name', name);
     prefs.setString('password', password);
 
-    return {'reason': '', 'success': true};
+    return response;
   }
 
-  Future<Map<String, dynamic>> login({String name, String password}) async {
+  Future<String> login({String name, String password}) async {
     final prefs = await SharedPreferences.getInstance();
     if (name == null || password == null) {
       name = prefs.getString('name');
@@ -53,35 +59,40 @@ class AuthData with ChangeNotifier {
       prefs.setString('name', name);
       prefs.setString('password', password);
     }
+    try {
+      String response = useAPIService
+          ? await APIService.loginUser(name, password)
+          : await FakeAPIService.loginUser(
+              name, password); // [String reason/token, bool success]
 
-    List<dynamic> response = useAPIService
-        ? await APIService.loginUser(name, password)
-        : await FakeAPIService.loginUser(
-            name, password); // [String reason/token, bool success]
-
-    if (response[1]) {
-      _token = response[0];
+      _token = response;
       _authTimer = Timer(Duration(minutes: 55), () {
         developer.log('renewing token');
         login();
       }); //token expires after one hour, renew token by login again
       _expiryDate = DateTime.now().add(Duration(minutes: 55));
       notifyListeners();
-      return {'reason': '', 'success': true};
-    } else {
-      return {'reason': response[0], 'success': false};
+      return token;
+    } on HttpException catch (exception) {
+      throw exception;
+    } catch (exception) {
+      developer.log('unexpected exception: ', error: exception);
+      throw exception;
     }
   }
 
   Future<bool> tryAutoLogin() async {
     final prefs = await SharedPreferences.getInstance();
-
     if (prefs.containsKey('name') && prefs.containsKey('password')) {
       developer.log('try to auto login user');
-      return (await login())[1];
-    }
-
-    developer.log('no data to auto login user');
+      try {
+        await login();
+        return true;
+      } catch (exception) {
+        developer.log('could not login user');
+      }
+    } else
+      developer.log('no data, to auto login user');
 
     return false;
   }

@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:freibad_app/models/appointment.dart';
+import 'package:freibad_app/models/httpException.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
 import 'package:freibad_app/models/session.dart';
@@ -53,30 +54,29 @@ class ReserveAPIService extends ReserveAPI {
   static const baseUrl = 'http://10.0.2.2:5000';
   //static const baseUrl = "http://192.168.2.125:5000";
 
-  static Future<String> registerUser(String name, String password) async {
+  static Future<bool> registerUser(String name, String password) async {
     String url = '$baseUrl/register?name=$name&password=$password';
     try {
       final registerUserResponse = await http.post(url);
       developer.log(
           'user post request to the Reserve API finished, Statuscode: ${registerUserResponse.statusCode}');
       if (registerUserResponse.statusCode == 201) {
-        developer.log('added user on the server');
-        return 'successful';
+        developer.log('added user to the server');
+        return true;
       } else if (registerUserResponse.statusCode == 409) {
-        developer.log('user already exists');
-        return 'name taken';
+        developer.log('user name already exists');
+        throw HttpException('user name already exists');
       } else {
-        throw Exception(
+        throw HttpException(
             'Something went wrong calling the Reserve API, Error reason phrase: ${registerUserResponse.reasonPhrase}');
       }
     } catch (exception) {
       developer.log('Error on calling the Reserve API', error: exception);
-
-      return 'error';
+      throw exception;
     }
   }
 
-  static Future<List<dynamic>> loginUser(String name, String password) async {
+  static Future<String> loginUser(String name, String password) async {
     String url = '$baseUrl/login?name=$name&password=$password';
     try {
       final loginUserResponse = await http.get(url);
@@ -89,21 +89,20 @@ class ReserveAPIService extends ReserveAPI {
 
         String token = decodedResponse['token'];
         developer.log("login successful, token is: $token");
-        return [token, true];
+        return token;
       } else if (loginUserResponse.statusCode == 401) {
-        developer.log('user and password does not match');
-        return ['user and password does not match', false];
+        developer.log('password is wrong');
+        throw HttpException('Ppassword is wrong');
       } else if (loginUserResponse.statusCode == 404) {
         developer.log('user does not exist');
-        return ['user does not exist', false];
+        throw HttpException('user does not exist');
       } else {
-        throw Exception(
+        throw HttpException(
             'Something went wrong calling the Reserve API, Error reason phrase: ${loginUserResponse.reasonPhrase}');
       }
     } catch (exception) {
       developer.log('Error on calling the Reserve API', error: exception);
-
-      return ['something went wrong', false];
+      throw exception;
     }
   }
 
@@ -287,13 +286,12 @@ class ReserveAPIService extends ReserveAPI {
 }
 
 class FakeReserveAPIService extends ReserveAPI {
-  static Future<String> registerUser(String name, String password) {
-    return Future.delayed(Duration(milliseconds: 1), () => "successful");
+  static Future<bool> registerUser(String name, String password) {
+    return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
-  static Future<List<dynamic>> loginUser(String name, String password) {
-    return Future.delayed(
-        Duration(milliseconds: 1), () => ["Test_Token", true]);
+  static Future<String> loginUser(String name, String password) {
+    return Future.delayed(Duration(milliseconds: 1), () => "Test_Token");
   }
 
   static Future<bool> addPerson(Person person, String token) {

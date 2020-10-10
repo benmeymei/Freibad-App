@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/provider/session_data.dart';
-import 'package:freibad_app/screens/home_screen/components/custom_textField.dart';
+import 'package:freibad_app/screens/components/custom_textField.dart';
 import 'package:provider/provider.dart';
 
 class PersonDetailDialog extends StatefulWidget {

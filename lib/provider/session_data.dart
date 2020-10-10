@@ -28,10 +28,11 @@ class SessionData with ChangeNotifier {
 
   Uuid uuid = Uuid(); // for creating unique ids
 
-  SessionData(
-      {this.useAPIService = false,
-      this.useStorageService = false,
-      @required this.token}) {
+  SessionData({
+    this.useAPIService = false,
+    this.useStorageService = false,
+    @required this.token,
+  }) {
     if (useStorageService)
       db = LocalStorage();
     else
@@ -53,8 +54,8 @@ class SessionData with ChangeNotifier {
 
       try {
         Session session = (useAPIService
-            ? await APIService.getReservation(request.id)
-            : await FakeAPIService.getReservation(request.id));
+            ? await APIService.getReservation(request.id, token)
+            : await FakeAPIService.getReservation(request.id, token));
 
         if (session is Request) continue;
 
@@ -74,8 +75,8 @@ class SessionData with ChangeNotifier {
     }
     developer.log('finished updating pending sessions');
     _availableLocations = useAPIService
-        ? await APIService.availableLocations()
-        : await FakeAPIService.availableLocations();
+        ? await APIService.availableLocations(token)
+        : await FakeAPIService.availableLocations(token);
     developer.log('finished receiving available locations');
     notifyListeners();
   }
@@ -110,8 +111,8 @@ class SessionData with ChangeNotifier {
 
     try {
       bool apiCallSuccessful = (useAPIService
-          ? await APIService.addPerson(person)
-          : await FakeAPIService.addPerson(person));
+          ? await APIService.addPerson(person, token)
+          : await FakeAPIService.addPerson(person, token));
       if (!apiCallSuccessful) return;
       db.addPerson(person);
       _persons.add(person);
@@ -148,8 +149,8 @@ class SessionData with ChangeNotifier {
     );
     try {
       bool apiCallSuccessful = useAPIService
-          ? await APIService.editPerson(updatedPerson)
-          : await FakeAPIService.editPerson(updatedPerson);
+          ? await APIService.editPerson(updatedPerson, token)
+          : await FakeAPIService.editPerson(updatedPerson, token);
       if (!apiCallSuccessful) return;
 
       db.updatePerson(updatedPerson);
@@ -202,8 +203,8 @@ class SessionData with ChangeNotifier {
         location: location);
     try {
       Session resultSession = useAPIService
-          ? await APIService.makeReservation(request)
-          : await FakeAPIService.makeReservation(request);
+          ? await APIService.makeReservation(request, token)
+          : await FakeAPIService.makeReservation(request, token);
 
       db.addSession(resultSession);
 
@@ -264,8 +265,8 @@ class SessionData with ChangeNotifier {
       notifyListeners();
 
       bool apiCallSuccessful = useAPIService
-          ? await APIService.deleteReservation(appointmentId)
-          : await FakeAPIService.deleteReservation(appointmentId);
+          ? await APIService.deleteReservation(appointmentId, token)
+          : await FakeAPIService.deleteReservation(appointmentId, token);
       if (!apiCallSuccessful) {
         //api call not successful, add appointment back to list
         developer.log("api call not successful");
@@ -294,8 +295,8 @@ class SessionData with ChangeNotifier {
       _requests.removeAt(elementPos);
       notifyListeners();
       bool apiCallSuccessful = useAPIService
-          ? await APIService.deleteReservation(requestId)
-          : await FakeAPIService.deleteReservation(requestId);
+          ? await APIService.deleteReservation(requestId, token)
+          : await FakeAPIService.deleteReservation(requestId, token);
 
       if (!apiCallSuccessful) {
         //api call not successful, add request back to list

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freibad_app/provider/auth_data.dart';
 import 'package:freibad_app/provider/settings.dart';
 import 'package:provider/provider.dart';
 
@@ -57,6 +58,19 @@ class _SettingsSubscreenState extends State<SettingsSubscreen> {
                 },
               )
             ],
+          ),
+          RaisedButton(
+            onPressed: () async {
+              await Provider.of<AuthData>(context, listen: false).logout();
+            },
+            child: Text(
+              'Logout',
+              style: TextStyle(color: Theme.of(context).cardColor),
+            ),
+            color: Theme.of(context).primaryColor,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(15.0),
+            ),
           )
         ],
       ),
