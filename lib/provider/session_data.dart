@@ -1,5 +1,4 @@
 import 'dart:developer' as developer;
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
@@ -12,6 +11,7 @@ import 'package:uuid/uuid.dart';
 class SessionData with ChangeNotifier {
   final bool useAPIService;
   final bool useStorageService;
+  final String token;
 
   List<Person> _persons;
   List<Session> _appointments;
@@ -28,7 +28,10 @@ class SessionData with ChangeNotifier {
 
   Uuid uuid = Uuid(); // for creating unique ids
 
-  SessionData({this.useAPIService = false, this.useStorageService = false}) {
+  SessionData(
+      {this.useAPIService = false,
+      this.useStorageService = false,
+      @required this.token}) {
     if (useStorageService)
       db = LocalStorage();
     else

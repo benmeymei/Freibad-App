@@ -7,12 +7,13 @@ import 'package:mdi/mdi.dart';
 
 class WeatherData with ChangeNotifier {
   final bool useAPIService;
+  final String token;
   DateTime lastWeatherRefresh;
   List<Map<String, dynamic>> rawWeather;
   Map<DateTime, Weather>
       weather; //key is the day of the weather forecast at zero o'clock
 
-  WeatherData({this.useAPIService = false});
+  WeatherData({this.useAPIService = false, @required this.token});
 
   Future<Map<DateTime, Weather>> getWeatherForecast() async {
     if (lastWeatherRefresh == null ||

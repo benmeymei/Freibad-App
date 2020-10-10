@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:freibad_app/provider/auth_data.dart';
 import 'package:freibad_app/provider/session_data.dart';
 import 'package:freibad_app/provider/settings.dart';
 import 'package:freibad_app/provider/weather_data.dart';
@@ -29,10 +30,19 @@ class MyApp extends StatelessWidget {
           create: (_) => Settings(
               useServerAPIService, useWeatherAPIService, useStorageService),
         ),
+        ChangeNotifierProxyProvider<Settings, AuthData>(
+          update: (_, settings, __) => AuthData(
+            useAPIService: settings.useServer,
+          ),
+          create: (_) => AuthData(
+            useAPIService: useServerAPIService,
+          ),
+        ),
         ChangeNotifierProxyProvider<Settings, SessionData>(
           update: (_, settings, __) => SessionData(
               useAPIService: settings.useServer,
-              useStorageService: settings.useStorageService),
+              useStorageService: settings.useStorageService,
+              token: ),
           create: (_) => SessionData(
               useAPIService: useServerAPIService,
               useStorageService: useStorageService),

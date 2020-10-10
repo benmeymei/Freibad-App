@@ -3,7 +3,6 @@ import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/request.dart';
 import 'package:freibad_app/models/session.dart';
-import 'package:freibad_app/services/api_keys.dart';
 import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
@@ -50,54 +49,105 @@ abstract class ReserveAPI {
 }
 
 class ReserveAPIService extends ReserveAPI {
-  static String baseUrl = APIKeys.BaseURL;
+  //static String baseUrl = APIKeys.BaseURL;
+  static const baseUrl = 'http://10.0.2.2:5000';
   //static const baseUrl = "http://192.168.2.125:5000";
 
-  static Future<bool> addUser(Person user) async {
-    String url =
-        '$baseUrl/user/${user.id}?forename=${user.forename}&name=${user.name}&adress=${user.streetName} ${user.streetNumber}&postcode=${user.postcode}&city=${user.city}&phone=${user.phoneNumber}&email=${user.email}';
+  static Future<String> registerUser(String name, String password) async {
+    String url = '$baseUrl/register?name=$name&password=$password';
     try {
-      final addUserResponse = await http.post(
+      final registerUserResponse = await http.post(url);
+      developer.log(
+          'user post request to the Reserve API finished, Statuscode: ${registerUserResponse.statusCode}');
+      if (registerUserResponse.statusCode == 201) {
+        developer.log('added user on the server');
+        return 'successful';
+      } else if (registerUserResponse.statusCode == 409) {
+        developer.log('user already exists');
+        return 'name taken';
+      } else {
+        throw Exception(
+            'Something went wrong calling the Reserve API, Error reason phrase: ${registerUserResponse.reasonPhrase}');
+      }
+    } catch (exception) {
+      developer.log('Error on calling the Reserve API', error: exception);
+
+      return 'error';
+    }
+  }
+
+  static Future<List<dynamic>> loginUser(String name, String password) async {
+    String url = '$baseUrl/login?name=$name&password=$password';
+    try {
+      final loginUserResponse = await http.get(url);
+      developer.log(
+          'user login request to the Reserve API finished, Statuscode: ${loginUserResponse.statusCode}');
+      if (loginUserResponse.statusCode == 200) {
+        developer.log('got token from the server');
+        Map<String, dynamic> decodedResponse =
+            jsonDecode(loginUserResponse.body);
+
+        String token = decodedResponse['token'];
+        developer.log("login successful, token is: $token");
+        return [token, true];
+      } else if (loginUserResponse.statusCode == 401) {
+        developer.log('user and password does not match');
+        return ['user and password does not match', false];
+      } else if (loginUserResponse.statusCode == 404) {
+        developer.log('user does not exist');
+        return ['user does not exist', false];
+      } else {
+        throw Exception(
+            'Something went wrong calling the Reserve API, Error reason phrase: ${loginUserResponse.reasonPhrase}');
+      }
+    } catch (exception) {
+      developer.log('Error on calling the Reserve API', error: exception);
+
+      return ['something went wrong', false];
+    }
+  }
+
+  static Future<bool> addPerson(Person person, String token) async {
+    String url =
+        '$baseUrl/person/${person.id}?forename=${person.forename}&name=${person.name}&adress=${person.streetName} ${person.streetNumber}&postcode=${person.postcode}&city=${person.city}&phone=${person.phoneNumber}&email=${person.email}';
+    try {
+      final addPersonResponse = await http.post(
         url,
-        headers: {
-          //'apikey': APIKeys.ReserveAPI,
-        },
+        headers: {'access-token': token},
       );
       developer.log(
-          'user post request to the Reserve API finished, Statuscode: ${addUserResponse.statusCode}');
-      if (addUserResponse.statusCode == 201) {
-        developer.log('added user on the server');
+          'person post request to the Reserve API finished, Statuscode: ${addPersonResponse.statusCode}');
+      if (addPersonResponse.statusCode == 201) {
+        developer.log('added person on the server');
         return true;
       } else {
         throw Exception(
-            'Something went wrong calling the Reserve API, Error reason phrase: ${addUserResponse.reasonPhrase}');
+            'Something went wrong calling the Reserve API, Error reason phrase: ${addPersonResponse.reasonPhrase}');
       }
     } catch (exception) {
-      developer.log("Error on calling the Reserve API", error: exception);
+      developer.log('Error on calling the Reserve API', error: exception);
 
       return false;
     }
   }
 
-  static Future<bool> updateUser(Person user) async {
+  static Future<bool> updatePerson(Person person, String token) async {
     String url =
-        '$baseUrl/user/${user.id}?forename=${user.forename}&name=${user.name}&adress=${user.streetName}${user.streetNumber}&postcode=${user.postcode}&city=${user.city}&phone=${user.phoneNumber}&email=${user.email}';
+        '$baseUrl/person/${person.id}?forename=${person.forename}&name=${person.name}&adress=${person.streetName}${person.streetNumber}&postcode=${person.postcode}&city=${person.city}&phone=${person.phoneNumber}&email=${person.email}';
 
     try {
-      final updateUserResponse = await http.put(
+      final updatePersonResponse = await http.put(
         url,
-        headers: {
-          //'apikey': APIKeys.ReserveAPI,
-        },
+        headers: {'access-token': token},
       );
       developer.log(
-          'user edit request to the Reserve API finished, Statuscode: ${updateUserResponse.statusCode}');
-      if (updateUserResponse.statusCode == 204) {
-        developer.log('edited user');
+          'person edit request to the Reserve API finished, Statuscode: ${updatePersonResponse.statusCode}');
+      if (updatePersonResponse.statusCode == 204) {
+        developer.log('edited person');
         return true;
       } else {
         throw Exception(
-            'Something went wrong calling the Reserve API, Error: ${updateUserResponse.reasonPhrase}');
+            'Something went wrong calling the Reserve API, Error: ${updatePersonResponse.reasonPhrase}');
       }
     } catch (exception) {
       developer.log('Error on calling the Reserve API', error: exception);
@@ -105,7 +155,7 @@ class ReserveAPIService extends ReserveAPI {
     }
   }
 
-  static Future<Session> makeReservation(Request request) async {
+  static Future<Session> makeReservation(Request request, String token) async {
     String members = '';
 
     for (Map<String, String> member in request.accessList)
@@ -117,9 +167,7 @@ class ReserveAPIService extends ReserveAPI {
     try {
       final addSessionResponse = await http.post(
         url,
-        headers: {
-          //'apikey': APIKeys.ReserveAPI,
-        },
+        headers: {'access-token': token},
       );
       developer.log(
           'request post request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
@@ -136,15 +184,13 @@ class ReserveAPIService extends ReserveAPI {
     }
   }
 
-  static Future<Session> getReservation(String sessionId) async {
+  static Future<Session> getReservation(String sessionId, String token) async {
     String url = '$baseUrl/session/$sessionId';
 
     try {
       final addSessionResponse = await http.get(
         url,
-        headers: {
-          //'apikey': APIKeys.ReserveAPI,
-        },
+        headers: {'access-token': token},
       );
       developer.log(
           'session get request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
@@ -161,15 +207,14 @@ class ReserveAPIService extends ReserveAPI {
     }
   }
 
-  static Future<bool> deleteReservation(String appointmentId) async {
+  static Future<bool> deleteReservation(
+      String appointmentId, String token) async {
     String url = '$baseUrl/session/$appointmentId';
 
     try {
       final addSessionResponse = await http.delete(
         url,
-        headers: {
-          //'apikey': APIKeys.ReserveAPI,
-        },
+        headers: {'access-token': token},
       );
       developer.log(
           'session delete request to the Reserve API finished, Statuscode: ${addSessionResponse.statusCode}');
@@ -177,7 +222,7 @@ class ReserveAPIService extends ReserveAPI {
         return true;
       } else if (addSessionResponse.statusCode == 404) {
         developer.log(
-            "session could not be found on the server. Proceeding with deletion.");
+            'session could not be found on the server. Proceeding with deletion.');
         return true;
       } else {
         throw Exception(
@@ -231,30 +276,39 @@ class ReserveAPIService extends ReserveAPI {
     }
   }
 
-  static Future<List<String>> availableLocations() {
+  static Future<List<String>> availableLocations(String token) {
     return ReserveAPI.availableLocations();
   }
 
   static Future<List<List<DateTime>>> availableTimeBlocks(
-      DateTime date, String location) {
+      DateTime date, String location, String token) {
     return ReserveAPI.availableTimeBlocks(date, location);
   }
 }
 
 class FakeReserveAPIService extends ReserveAPI {
-  static Future<bool> addUser(Person user) {
+  static Future<String> registerUser(String name, String password) {
+    return Future.delayed(Duration(milliseconds: 1), () => "successful");
+  }
+
+  static Future<List<dynamic>> loginUser(String name, String password) {
+    return Future.delayed(
+        Duration(milliseconds: 1), () => ["Test_Token", true]);
+  }
+
+  static Future<bool> addPerson(Person person, String token) {
     return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
-  static Future<bool> editUser(Person user) {
+  static Future<bool> editPerson(Person user, String token) {
     return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
-  static Future<Session> makeReservation(Session session) {
+  static Future<Session> makeReservation(Session session, String token) {
     return Future.delayed(Duration(milliseconds: 1), () => session);
   }
 
-  static Future<Session> getReservation(String sessionId) {
+  static Future<Session> getReservation(String sessionId, String token) {
     return Future.delayed(
       Duration(seconds: 5),
       () => Appointment(
@@ -270,16 +324,16 @@ class FakeReserveAPIService extends ReserveAPI {
     );
   }
 
-  static Future<bool> deleteReservation(String sessionId) {
+  static Future<bool> deleteReservation(String sessionId, String token) {
     return Future.delayed(Duration(milliseconds: 1), () => true);
   }
 
-  static Future<List<String>> availableLocations() {
+  static Future<List<String>> availableLocations(String token) {
     return ReserveAPI.availableLocations();
   }
 
   static Future<List<List<DateTime>>> availableTimeBlocks(
-      DateTime date, String location) {
+      DateTime date, String location, String token) {
     return ReserveAPI.availableTimeBlocks(date, location);
   }
 }
