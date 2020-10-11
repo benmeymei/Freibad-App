@@ -272,7 +272,7 @@ class FakeLocalStorage extends StorageService {
 }
 
 class TestData {
-  static const AMOUNT_PERSONS = 5;
+  static const AMOUNT_PERSONS = 10;
   static const AMOUNT_APPOINTMENTS = 6;
   static const AMOUNT_REQUESTS = 6;
 

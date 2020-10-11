@@ -20,7 +20,7 @@ class AuthData with ChangeNotifier {
   }
 
   String get token {
-    developer.log('Token: $_token');
+    //developer.log('Token: $_token');
 
     if (_expiryDate != null &&
         _token != null &&

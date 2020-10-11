@@ -64,7 +64,8 @@ class _SessionPresenterState extends State<SessionPresenter> {
       isInitState = false;
     }
     if (_mediaQueryData.size.width > _mediaQueryData.size.height &&
-        _mediaQueryData.size.width > 500) //only looks good on bigger screens
+        _mediaQueryData.size.width >
+            500) //centering only looks good on bigger screens
       centerTimeWidget = true;
     else
       centerTimeWidget = false;
@@ -92,8 +93,8 @@ class _SessionPresenterState extends State<SessionPresenter> {
           ),
           child: Padding(
             padding: const EdgeInsets.all(10.0),
-            child: Container(
-              height: 100,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minHeight: 100),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: <Widget>[
@@ -115,7 +116,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Container(
-                            width: 70,
+                            width: 75,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.center,
@@ -204,7 +205,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
       );
   }
 
-  Container showAccessList(List<Map<String, dynamic>> accessList) {
+  Widget showAccessList(List<Map<String, dynamic>> accessList) {
     List<Widget> accessListItems = accessList
         .map((accessItem) => getAccessListItem(accessItem, context))
         .toList();
