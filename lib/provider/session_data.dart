@@ -16,12 +16,19 @@ class SessionData with ChangeNotifier {
   List<Person> _persons;
   List<Session> _appointments;
   List<Request> _requests;
-  List<String> _availableLocations;
+  List<Map<String, String>> _availableLocations = [];
+  List<Map<String, dynamic>> _availableTimeBlocks = [];
 
   List<Person> get persons => [..._persons];
   List<Session> get appointments => [..._appointments];
   List<Request> get requests => [..._requests];
-  List<String> get availableLocations => [..._availableLocations];
+  List<String> get availableLocations {
+    List<String> temp = [];
+    for (Map<String, String> location in _availableLocations) {
+      temp.add(location['name']);
+    }
+    return temp;
+  }
 
   StorageService db;
   //use LocalStorage for production, use FakeLocalStorage for web
@@ -74,11 +81,47 @@ class SessionData with ChangeNotifier {
       }
     }
     developer.log('finished updating pending sessions');
-    _availableLocations = useAPIService
-        ? await APIService.availableLocations(token)
-        : await FakeAPIService.availableLocations(token);
-    developer.log('finished receiving available locations');
+
+    try {
+      _availableLocations = useAPIService
+          ? await APIService.availableLocations(token)
+          : await FakeAPIService.availableLocations(token);
+      developer.log('finished receiving available locations');
+
+      _availableTimeBlocks = useAPIService
+          ? await APIService.availableTimeBlocks(token)
+          : await FakeAPIService.availableTimeBlocks(token);
+      developer.log('finished receiving available time blocks');
+    } catch (exception) {
+      developer.log('Something went wrong loading the location data: ',
+          error: exception);
+    }
+
     notifyListeners();
+  }
+
+  String getLocationId(String location) {
+    return _availableLocations[_availableLocations
+        .indexWhere((element) => element['name'] == location)]['locationId'];
+  }
+
+  List<List<DateTime>> getTimeBlocks(String location, DateTime date) {
+    List<List<DateTime>> response = [];
+    String locationId = getLocationId(location);
+    int isoWeekday = date.weekday;
+
+    List<Map<String, dynamic>> timeBlocksData = _availableTimeBlocks
+        .where((element) => (element['locationId'] == locationId &&
+            element['isoWeekday'] == isoWeekday))
+        .toList();
+    for (Map<String, dynamic> timeBlockData in timeBlocksData) {
+      response.add([
+        date.add(Duration(minutes: timeBlockData['startMinute'])),
+        date.add(Duration(minutes: timeBlockData['endMinute']))
+      ]);
+    }
+
+    return response;
   }
 
   Person findPersonById(String id) {
@@ -118,8 +161,8 @@ class SessionData with ChangeNotifier {
       _persons.add(person);
       developer.log('added person');
     } catch (exception) {
-      print(exception);
-      throw exception;
+      developer.log('something went wrong adding a person: ', error: exception);
+      //throw exception;
     }
     notifyListeners();
   }
@@ -202,9 +245,11 @@ class SessionData with ChangeNotifier {
         hasFailed: false,
         location: location);
     try {
+      String locationId = getLocationId(location);
+
       Session resultSession = useAPIService
-          ? await APIService.makeReservation(request, token)
-          : await FakeAPIService.makeReservation(request, token);
+          ? await APIService.makeReservation(request, locationId, token)
+          : await FakeAPIService.makeReservation(request, locationId, token);
 
       db.addSession(resultSession);
 
@@ -269,7 +314,7 @@ class SessionData with ChangeNotifier {
           : await FakeAPIService.deleteReservation(appointmentId, token);
       if (!apiCallSuccessful) {
         //api call not successful, add appointment back to list
-        developer.log("api call not successful");
+        developer.log('api call not successful');
         _appointments.add(appointmentToDelete);
         notifyListeners();
         return;
@@ -300,7 +345,7 @@ class SessionData with ChangeNotifier {
 
       if (!apiCallSuccessful) {
         //api call not successful, add request back to list
-        developer.log("api call not successful");
+        developer.log('api call not successful');
         _requests.add(requestToDelete);
         notifyListeners();
         return;

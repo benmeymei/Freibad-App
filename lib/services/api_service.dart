@@ -47,8 +47,9 @@ class APIService extends API {
     }
   }
 
-  static Future<Session> makeReservation(Request session, String token) {
-    return ReserveAPIService.makeReservation(session, token);
+  static Future<Session> makeReservation(
+      Request session, String locationId, String token) {
+    return ReserveAPIService.makeReservation(session, locationId, token);
   }
 
   static Future<Session> getReservation(String sessionId, String token) {
@@ -59,13 +60,12 @@ class APIService extends API {
     return ReserveAPIService.deleteReservation(sessionId, token);
   }
 
-  static Future<List<String>> availableLocations(String token) {
+  static Future<List<Map<String, String>>> availableLocations(String token) {
     return ReserveAPIService.availableLocations(token);
   }
 
-  static Future<List<List<DateTime>>> availableTimeBlocks(
-      DateTime date, String location, String token) {
-    return ReserveAPIService.availableTimeBlocks(date, location, token);
+  static Future<List<Map<String, dynamic>>> availableTimeBlocks(String token) {
+    return ReserveAPIService.availableTimeBlocks(token);
   }
 }
 
@@ -94,8 +94,9 @@ class FakeAPIService extends API {
     return FakeReserveAPIService.editPerson(person, token);
   }
 
-  static Future<Session> makeReservation(Session session, String token) {
-    return FakeReserveAPIService.makeReservation(session, token);
+  static Future<Session> makeReservation(
+      Session session, String locationId, String token) {
+    return FakeReserveAPIService.makeReservation(session, locationId, token);
   }
 
   static Future<Session> getReservation(String sessionId, String token) {
@@ -106,12 +107,11 @@ class FakeAPIService extends API {
     return FakeReserveAPIService.deleteReservation(sessionId, token);
   }
 
-  static Future<List<String>> availableLocations(String token) {
+  static Future<List<Map<String, String>>> availableLocations(String token) {
     return FakeReserveAPIService.availableLocations(token);
   }
 
-  static Future<List<List<DateTime>>> availableTimeBlocks(
-      DateTime date, String location, String token) {
-    return FakeReserveAPIService.availableTimeBlocks(date, location, token);
+  static Future<List<Map<String, dynamic>>> availableTimeBlocks(String token) {
+    return FakeReserveAPIService.availableTimeBlocks(token);
   }
 }

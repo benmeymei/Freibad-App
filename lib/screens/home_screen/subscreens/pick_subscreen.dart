@@ -3,13 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:date_picker_timeline/date_picker_timeline.dart';
 import 'package:freibad_app/models/person.dart';
 import 'package:freibad_app/models/weather.dart';
-import 'package:freibad_app/provider/auth_data.dart';
 import 'package:freibad_app/provider/session_data.dart';
-import 'package:freibad_app/provider/settings.dart';
 import 'package:freibad_app/provider/weather_data.dart';
-
 import 'package:freibad_app/screens/home_screen/components/person_detail_dialog.dart';
-import 'package:freibad_app/services/api_service.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 
@@ -68,20 +64,10 @@ class _PickSubscreenState extends State<PickSubscreen> {
               },
             ),
             if (sessionDate != null && location != null)
-              FutureBuilder(
-                future: Provider.of<Settings>(context).useServer
-                    ? APIService.availableTimeBlocks(sessionDate, location,
-                        Provider.of<AuthData>(context).token)
-                    : FakeAPIService.availableTimeBlocks(sessionDate, location,
-                        Provider.of<AuthData>(context).token),
-                builder: (context, snapshot) {
-                  if (snapshot.hasData)
-                    return buildTimeSelector(snapshot.data,
-                        maxTemp: currentMaxTempDateTime);
-                  else
-                    return Container();
-                },
-              ),
+              buildTimeSelector(
+                  Provider.of<SessionData>(context)
+                      .getTimeBlocks(location, sessionDate),
+                  maxTemp: currentMaxTempDateTime),
             buildLocationSelector(),
             buildPersonSelector(context),
             buildSubmitButton(context),

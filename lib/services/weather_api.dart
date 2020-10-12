@@ -15,7 +15,7 @@ class WeatherAPIService extends WeatherAPI {
     final String url =
         'https://api.climacell.co/v3/weather/forecast/daily?lat=$requestLocationLat&lon=$requestLocationLon&' +
             'start_time=${DateTime.now().toIso8601String()}&' +
-            'end_time=${DateTime.now().add(Duration(days: 14)).toIso8601String()}&' +
+            'end_time=${DateTime.now().subtract(Duration(hours: 2)).add(Duration(days: 14)).toIso8601String()}&' + //subtract UTC time diffrence for Germany
             'fields=weather_code&fields=temp';
     try {
       final weatherResponse = await http.get(

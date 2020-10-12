@@ -116,7 +116,7 @@ class _SessionPresenterState extends State<SessionPresenter> {
                         child: Align(
                           alignment: Alignment.centerRight,
                           child: Container(
-                            width: 75,
+                            width: 80,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               crossAxisAlignment: CrossAxisAlignment.center,

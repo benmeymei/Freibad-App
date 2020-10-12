@@ -18,8 +18,8 @@ void main() {
 }
 
 class MyApp extends StatelessWidget {
-  final bool useServerAPIService = false;
-  final bool useWeatherAPIService = false;
+  final bool useServerAPIService = true;
+  final bool useWeatherAPIService = true;
   final bool useStorageService =
       !kIsWeb; //storage service functions only on mobile
 
