@@ -251,9 +251,11 @@ class ReserveAPIService extends ReserveAPI {
     String sessionId = decodedResponse['sessionId'];
     DateTime startTime = DateTime.parse(decodedResponse['startTime']);
     DateTime endTime = DateTime.parse(decodedResponse['endTime']);
-    String location = decodedResponse['location'];
     int status = decodedResponse['status'];
     List<dynamic> members = decodedResponse['members'];
+
+    Map<String, dynamic> locationData = decodedResponse['location'];
+    String location = locationData['name'];
 
     if (status > 0) {
       //Request successful
@@ -261,7 +263,7 @@ class ReserveAPIService extends ReserveAPI {
       for (Map<dynamic, dynamic> member in members) {
         developer.log('$member');
         accessList
-            .add({'person': member['userId'], 'code': member['entryCode']});
+            .add({'person': member['personId'], 'code': member['entryCode']});
       }
       return Appointment(
         id: sessionId,
@@ -274,7 +276,7 @@ class ReserveAPIService extends ReserveAPI {
       //0 request is pending, negative request unsuccessful
       List<Map<String, String>> accessList = [];
       for (Map<dynamic, dynamic> member in members) {
-        accessList.add({'person': member['userId']});
+        accessList.add({'person': member['personId']});
       }
       bool hasFailed = status < 0;
       return Request(

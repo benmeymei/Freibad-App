@@ -39,7 +39,7 @@ class LocalStorage extends StorageService {
         "CREATE TABLE requests(id TEXT PRIMARY KEY, startTime TEXT, endTime TEXT, accessList TEXT, hasFailed INTEGER, location TEXT)",
       );
       Future<void> createAccessTable = db.execute(
-        "CREATE TABLE access(sessionId TEXT, person TEXT, accessCode TEXT, PRIMARY KEY(sessionId, person))",
+        "CREATE TABLE access(sessionId TEXT, person TEXT, code TEXT, PRIMARY KEY(sessionId, person))",
       );
       return Future.wait([
         createPersonsTable,
