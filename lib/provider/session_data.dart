@@ -1,4 +1,5 @@
 import 'dart:developer' as developer;
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/person.dart';
@@ -23,6 +24,11 @@ class SessionData with ChangeNotifier {
   List<Session> get appointments => [..._appointments];
   List<Request> get requests => [..._requests];
   List<String> get availableLocations {
+    if (_availableLocations.isEmpty) {
+      _setLocaitonData();
+      //trying again for next refresh
+    }
+
     List<String> temp = [];
     for (Map<String, String> location in _availableLocations) {
       temp.add(location['name']);
@@ -53,12 +59,34 @@ class SessionData with ChangeNotifier {
     _requests = await db.getRequests() ?? [];
     developer.log('fetching and setting local data finished');
 
+    if (_persons.isEmpty && _appointments.isEmpty && _requests.isEmpty) {
+      //syncing server data for a new login or a web login
+      Map<String, List<dynamic>> userData;
+
+      try {
+        userData = (useAPIService
+            ? await APIService.getUserData(token)
+            : await FakeAPIService.getUserData(token));
+        if (userData != null) {
+          for (Session session in userData['sessions']) {
+            _addSession(session);
+          }
+          for (Person person in userData['persons']) {
+            _addPersonLocal(person);
+          }
+        }
+      } catch (exception) {
+        developer.log('something went wrong getting the user data: ',
+            error: exception);
+      }
+    }
+
     //look for updates for requests
     for (Request request in _requests) {
       if (!useStorageService || kIsWeb)
         break; //do not make server request with wrong data or if data gets loaded from the server anyway
       if (request.hasFailed) continue;
-
+      developer.log("looking for an update for $request");
       try {
         Session session = (useAPIService
             ? await APIService.getReservation(request.id, token)
@@ -82,22 +110,33 @@ class SessionData with ChangeNotifier {
     }
     developer.log('finished updating pending sessions');
 
+    _setLocaitonData();
+    _setOpeningHoursData();
+    notifyListeners();
+  }
+
+  void _setLocaitonData() async {
     try {
       _availableLocations = useAPIService
           ? await APIService.availableLocations(token)
           : await FakeAPIService.availableLocations(token);
-      developer.log('finished receiving available locations');
-
-      _availableTimeBlocks = useAPIService
-          ? await APIService.availableTimeBlocks(token)
-          : await FakeAPIService.availableTimeBlocks(token);
       developer.log('finished receiving available time blocks');
     } catch (exception) {
       developer.log('Something went wrong loading the location data: ',
           error: exception);
     }
+  }
 
-    notifyListeners();
+  void _setOpeningHoursData() async {
+    try {
+      _availableTimeBlocks = useAPIService
+          ? await APIService.availableTimeBlocks(token)
+          : await FakeAPIService.availableTimeBlocks(token);
+      developer.log('finished updating pending sessions');
+    } catch (exception) {
+      developer.log('Something went wrong loading the opening hours data: ',
+          error: exception);
+    }
   }
 
   String getLocationId(String location) {
@@ -106,6 +145,11 @@ class SessionData with ChangeNotifier {
   }
 
   List<List<DateTime>> getTimeBlocks(String location, DateTime date) {
+    if (_availableTimeBlocks.isEmpty) {
+      _setOpeningHoursData();
+      //trying again for next refresh
+    }
+
     List<List<DateTime>> response = [];
     String locationId = getLocationId(location);
     int isoWeekday = date.weekday;
@@ -125,10 +169,26 @@ class SessionData with ChangeNotifier {
   }
 
   Person findPersonById(String id) {
+    Person unidentifiedPerson = Person(
+        id: '',
+        forename: 'Unknown',
+        name: 'Unknown',
+        streetName: 'Unknown',
+        streetNumber: 'Unknown',
+        postcode: 0,
+        city: 'Unknown',
+        phoneNumber: 'Unknown',
+        email: 'Unknown');
     if (_persons == null) {
-      return null;
+      return unidentifiedPerson;
     }
-    return _persons.firstWhere((element) => element.id == id);
+    try {
+      return _persons.firstWhere((element) => element.id == id);
+    } catch (exception) {
+      developer.log('Looking up person with id: $id failed: ',
+          error: exception);
+      return unidentifiedPerson;
+    }
   }
 
   void addPerson({
@@ -157,14 +217,18 @@ class SessionData with ChangeNotifier {
           ? await APIService.addPerson(person, token)
           : await FakeAPIService.addPerson(person, token));
       if (!apiCallSuccessful) return;
-      db.addPerson(person);
-      _persons.add(person);
-      developer.log('added person');
+      _addPersonLocal(person);
     } catch (exception) {
       developer.log('something went wrong adding a person: ', error: exception);
       //throw exception;
     }
     notifyListeners();
+  }
+
+  void _addPersonLocal(Person person) {
+    db.addPerson(person);
+    _persons.add(person);
+    developer.log('added person');
   }
 
   void updatePerson({
@@ -250,24 +314,27 @@ class SessionData with ChangeNotifier {
       Session resultSession = useAPIService
           ? await APIService.makeReservation(request, locationId, token)
           : await FakeAPIService.makeReservation(request, locationId, token);
-
-      db.addSession(resultSession);
-
-      if (resultSession is Request) {
-        _requests.add(resultSession);
-        developer.log('added request');
-      } else if (resultSession is Appointment) {
-        _appointments.add(resultSession);
-        developer.log('added appointment');
-      } else {
-        developer.log(
-            'Type of session is not saved. Type: ${resultSession.runtimeType}');
-      }
+      _addSession(resultSession);
     } catch (exception) {
       developer.log(exception);
       throw exception;
     }
     notifyListeners();
+  }
+
+  void _addSession(Session resultSession) {
+    db.addSession(resultSession);
+
+    if (resultSession is Request) {
+      _requests.add(resultSession);
+      developer.log('added request');
+    } else if (resultSession is Appointment) {
+      _appointments.add(resultSession);
+      developer.log('added appointment');
+    } else {
+      developer.log(
+          'Type of session is not saved. Type: ${resultSession.runtimeType}');
+    }
   }
 
   void deletePerson(String personId) {

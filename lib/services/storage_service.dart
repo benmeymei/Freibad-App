@@ -21,6 +21,8 @@ abstract class StorageService {
   Future<void> deletePerson(String personID);
   Future<void> deleteAppointment(String appointmentID);
   Future<void> deleteRequest(String requestID);
+
+  Future<void> deleteDB();
 }
 
 class LocalStorage extends StorageService {
@@ -223,6 +225,11 @@ class LocalStorage extends StorageService {
       whereArgs: [requestID],
     );
   }
+
+  Future<void> deleteDB() async {
+    String dbPath = path.join(await getDatabasesPath(), 'access.db');
+    await deleteDatabase(dbPath);
+  }
 }
 
 class FakeLocalStorage extends StorageService {
@@ -267,6 +274,10 @@ class FakeLocalStorage extends StorageService {
   }
 
   Future<void> deleteRequest(String requestID) {
+    return Future.delayed(Duration(milliseconds: 1));
+  }
+
+  Future<void> deleteDB() {
     return Future.delayed(Duration(milliseconds: 1));
   }
 }

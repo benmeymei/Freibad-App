@@ -67,6 +67,10 @@ class APIService extends API {
   static Future<List<Map<String, dynamic>>> availableTimeBlocks(String token) {
     return ReserveAPIService.availableTimeBlocks(token);
   }
+
+  static Future<Map<String, List<dynamic>>> getUserData(String token) async {
+    return ReserveAPIService.getUserData(token);
+  }
 }
 
 class FakeAPIService extends API {
@@ -113,5 +117,9 @@ class FakeAPIService extends API {
 
   static Future<List<Map<String, dynamic>>> availableTimeBlocks(String token) {
     return FakeReserveAPIService.availableTimeBlocks(token);
+  }
+
+  static Future<Map<String, List<dynamic>>> getUserData(String token) async {
+    return FakeReserveAPIService.getUserData(token);
   }
 }

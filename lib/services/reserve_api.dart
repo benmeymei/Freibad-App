@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/appointment.dart';
 import 'package:freibad_app/models/httpException.dart';
 import 'package:freibad_app/models/person.dart';
@@ -245,9 +246,60 @@ class ReserveAPIService extends ReserveAPI {
     }
   }
 
+  static Future<Map<String, List<dynamic>>> getUserData(String token) async {
+    Map<String, List<dynamic>> response;
+    String url = '$baseUrl/userData';
+
+    try {
+      final getUserDataResponse = await http.get(
+        url,
+        headers: {'access-token': token},
+      );
+      developer.log(
+          'user data request to the Reserve API finished, Statuscode: ${getUserDataResponse.statusCode}');
+      if (getUserDataResponse.statusCode == 200) {
+        Map<String, dynamic> userData = jsonDecode(getUserDataResponse.body);
+
+        List<Session> sessions = [];
+        List<dynamic> sessionData = userData['sessions'];
+
+        for (Map<String, dynamic> session in sessionData) {
+          sessions.add(decodedJsonToSession(session));
+        }
+        if (sessions.isNotEmpty)
+          response = Map.fromEntries([MapEntry('sessions', sessions)]);
+
+        List<Person> persons = [];
+        List<dynamic> personData = userData['persons'];
+
+        for (Map<String, dynamic> person in personData) {
+          persons.add(decodedJsonToPerson(person));
+        }
+
+        if (persons.isNotEmpty) response.putIfAbsent('persons', () => persons);
+
+        debugPrint('SessionData: ' + sessionData.toString());
+        debugPrint('PersonData: ' + personData.toString());
+        debugPrint('Data: ' + userData.toString());
+        debugPrint('Response: ' + response.toString());
+
+        return response;
+      } else {
+        throw Exception(
+            'Something went wrong calling the Reserve API, Error: ${getUserDataResponse.reasonPhrase}');
+      }
+    } catch (exception) {
+      developer.log('Error on calling the Reserve API', error: exception);
+      throw exception;
+    }
+  }
+
   static Session jsonToSession(String jsonResponse) {
     Map<String, dynamic> decodedResponse = jsonDecode(jsonResponse);
+    return decodedJsonToSession(decodedResponse);
+  }
 
+  static decodedJsonToSession(Map<String, dynamic> decodedResponse) {
     String sessionId = decodedResponse['sessionId'];
     DateTime startTime = DateTime.parse(decodedResponse['startTime']);
     DateTime endTime = DateTime.parse(decodedResponse['endTime']);
@@ -287,6 +339,30 @@ class ReserveAPIService extends ReserveAPI {
           hasFailed: hasFailed,
           location: location);
     }
+  }
+
+  static Person decodedJsonToPerson(Map<String, dynamic> decodedResponse) {
+    String personId = decodedResponse['personId'];
+    String forename = decodedResponse['forename'];
+    String name = decodedResponse['name'];
+    String adress = decodedResponse['adress'];
+    String streetName = adress.split(' ')[0];
+    String streetNumber = adress.split(' ')[1];
+    int postcode = decodedResponse['postcode'];
+    String city = decodedResponse['city'];
+    String phone = decodedResponse['phone'];
+    String email = decodedResponse['email'];
+
+    return Person(
+        id: personId,
+        forename: forename,
+        name: name,
+        streetName: streetName,
+        streetNumber: streetNumber,
+        postcode: postcode,
+        city: city,
+        phoneNumber: phone,
+        email: email);
   }
 
   static Future<List<Map<String, String>>> availableLocations(
@@ -403,5 +479,9 @@ class FakeReserveAPIService extends ReserveAPI {
 
   static Future<List<Map<String, dynamic>>> availableTimeBlocks(String token) {
     return ReserveAPI.availableTimeBlocks();
+  }
+
+  static Future<Map<String, List<dynamic>>> getUserData(String token) async {
+    return Future.delayed(Duration(seconds: 1), () => null);
   }
 }

@@ -33,11 +33,11 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProxyProvider<Settings, AuthData>(
           update: (_, settings, __) => AuthData(
-            useAPIService: settings.useServer,
-          ),
+              useAPIService: settings.useServer,
+              useStorageService: settings.useStorageService),
           create: (_) => AuthData(
-            useAPIService: useServerAPIService,
-          ),
+              useAPIService: useServerAPIService,
+              useStorageService: useServerAPIService),
         ),
         ChangeNotifierProxyProvider2<Settings, AuthData, SessionData>(
           update: (_, settings, authData, __) => SessionData(

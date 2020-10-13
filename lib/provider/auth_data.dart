@@ -4,12 +4,14 @@ import 'dart:developer' as developer;
 import 'package:flutter/foundation.dart';
 import 'package:freibad_app/models/httpException.dart';
 import 'package:freibad_app/services/api_service.dart';
+import 'package:freibad_app/services/storage_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 //using SharedPreferences for securing login data might not be the best solution security wise, but it works on all platforms
 class AuthData with ChangeNotifier {
-  AuthData({@required this.useAPIService});
+  AuthData({@required this.useAPIService, @required this.useStorageService});
   final bool useAPIService;
+  final bool useStorageService;
 
   String _token;
   DateTime _expiryDate;
@@ -104,8 +106,11 @@ class AuthData with ChangeNotifier {
       _authTimer.cancel();
       _authTimer = null;
     }
-    notifyListeners();
     final prefs = await SharedPreferences.getInstance();
-    prefs.clear();
+    prefs.clear(); //clearing auto login data
+    await (useStorageService
+        ? LocalStorage().deleteDB()
+        : FakeLocalStorage().deleteDB());
+    notifyListeners();
   }
 }
