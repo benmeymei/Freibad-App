@@ -10,7 +10,7 @@ import 'dart:developer' as developer;
 
 abstract class ReserveAPI {
   static Future<List<Map<String, dynamic>>> availableTimeBlocks() async {
-    //could be advanced with more conditions (like local holidays), for that reason placed in API_SERVICE
+    //could be advanced with more conditions (like local holidays)
     List<Map<String, dynamic>> result = [];
     List<Map<String, String>> locations = await availableLocations();
 
@@ -41,12 +41,12 @@ abstract class ReserveAPI {
 
   static Future<List<Map<String, String>>> availableLocations() {
     return Future.value([
-      {'name': 'Strandbad Lörick', 'locationId': '1'},
-      {'name': 'Freibad Rheinbad', 'locationId': '2'},
-      {'name': 'Freibad Allwetterbad Flingern', 'locationId': '3'},
-      {'name': 'Freizeitbad Düsselstrand', 'locationId': '4'},
-      {'name': '33-Meter Schwimmhalle Rheinbad', 'locationId': '5'},
-      {'name': 'Familienbad Niederheid', 'locationId': '6'},
+      {'name': 'Strandbad Lörick', 'locationId': '0'},
+      {'name': 'Freibad Rheinbad', 'locationId': '1'},
+      {'name': 'Freibad Allwetterbad Flingern', 'locationId': '2'},
+      {'name': 'Freizeitbad Düsselstrand', 'locationId': '3'},
+      {'name': '33-Meter Schwimmhalle Rheinbad', 'locationId': '4'},
+      {'name': 'Familienbad Niederheid', 'locationId': '5'},
     ]);
   }
 
