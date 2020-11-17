@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/foundation.dart';
 import 'package:freibad_app/services/api_keys.dart';
 import 'package:http/http.dart' as http;
 import 'dart:developer' as developer;
@@ -30,6 +31,12 @@ class WeatherAPIService extends WeatherAPI {
       if (weatherResponse.statusCode == 200) {
         List<dynamic> decodedResponse = jsonDecode(weatherResponse.body);
         for (Map<String, dynamic> dailyForecast in decodedResponse) {
+          //get observation date
+          Map<String, dynamic> observationTimeTemp =
+              dailyForecast['observation_time'];
+          DateTime observationTime =
+              DateTime.parse(observationTimeTemp['value']);
+
           //get the max temp
           List<dynamic> listOfTemp = dailyForecast['temp'];
           Map<String, dynamic> dailyTempMaxInfo =
@@ -40,10 +47,18 @@ class WeatherAPIService extends WeatherAPI {
           dailyTempMaxDateTime = dailyTempMaxDateTime.subtract(Duration(
               hours:
                   2)); //from ClimaCell Documentation: Daily results are returned and calculated based on 6am to 6am local time periods (meteorological timeframe), however the response is always in UTC (GMT+0). Therefore, requesting forecast for locations with negative GMT offset may provide the first element with yesterday's date.
+          //although GMT for Germany depends on winter- (GMT +1) and summertime (GMT +2), summertime is used because it is more relevant (season for outside swimming)
           if (dailyTempMaxDateTime.hour ==
-              0) //in case the max time is shifted from 31.12.1999:0hours to 1.1.2000:2hours, the max date time still remains on 1.1.2000 although is should be in 1999
+              0) //in case the max time is shifted from 31.12.1999:0hours to 1.1.2000:2hours, the max date time still remains on 1.1.2000 although it should be in 1999
             dailyTempMaxDateTime = dailyTempMaxDateTime.subtract(Duration(
                 minutes: 30)); //solving by removing additional 30 minutes
+
+          if (dailyTempMaxDateTime.day != observationTime.day) {
+            DateTime alternativeTime = observationTime.add(Duration(hours: 12));
+            developer.log(
+                "maximal temperature time $dailyTempMaxDateTime and the oberservation time $observationTime do not match. Replacing max temp with the value of $alternativeTime");
+            dailyTempMaxDateTime = alternativeTime;
+          }
 
           //get weather code
           String dailyWeatherCode = dailyForecast['weather_code']['value'];
