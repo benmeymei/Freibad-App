@@ -32,7 +32,9 @@ class AuthCard extends StatefulWidget {
 class _AuthCardState extends State<AuthCard>
     with SingleTickerProviderStateMixin {
   final GlobalKey<FormState> _formKey = GlobalKey();
-  final _passwordController = TextEditingController();
+  final nameController = TextEditingController(text: 'loginData');
+  final _passwordController =
+      TextEditingController(text: 'somethingVerySecret');
   String errorMessage = 'Could not authenticate you. Please try again later';
   AuthMode _authMode = AuthMode.Login;
   bool _isLoading = false;
@@ -157,6 +159,7 @@ class _AuthCardState extends State<AuthCard>
                   children: [
                     CustomTextField(
                       labelText: 'Name',
+                      controller: nameController,
                       validator: (String input) {
                         if (input.isEmpty || input.split(' ').length > 1)
                           return 'Name must be one word';

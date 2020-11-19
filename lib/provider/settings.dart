@@ -14,14 +14,14 @@ class Settings with ChangeNotifier {
 
   set useServer(bool value) {
     isUpdated = false;
-    _useServerValue = value;
-    notifyListeners();
+    //_useServerValue = value;
+    //notifyListeners();
   }
 
   set useWeatherAPI(bool value) {
     isUpdated = false;
-    _useWeatherAPIValue = value;
-    notifyListeners();
+    //_useWeatherAPIValue = value;
+    //notifyListeners();
   }
 
   set useStorageService(bool value) {

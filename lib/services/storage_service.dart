@@ -283,9 +283,9 @@ class FakeLocalStorage extends StorageService {
 }
 
 class TestData {
-  static const AMOUNT_PERSONS = 10;
-  static const AMOUNT_APPOINTMENTS = 6;
-  static const AMOUNT_REQUESTS = 6;
+  static const AMOUNT_PERSONS = 4;
+  static const AMOUNT_APPOINTMENTS = 1;
+  static const AMOUNT_REQUESTS = 2;
 
   static final List<Person> persons = [
     for (int i = 0; i < AMOUNT_PERSONS; i++)
