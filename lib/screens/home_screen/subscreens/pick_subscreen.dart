@@ -393,6 +393,7 @@ class _PickSubscreenState extends State<PickSubscreen> {
   Widget _getWeatherWidget(
       IconData skyIcon, String temp, double size, Color color) {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
         Icon(
           skyIcon,

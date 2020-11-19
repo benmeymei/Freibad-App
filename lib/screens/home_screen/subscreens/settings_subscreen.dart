@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:freibad_app/licensing/licenses.dart';
 import 'package:freibad_app/provider/auth_data.dart';
 import 'package:freibad_app/provider/settings.dart';
 import 'package:provider/provider.dart';
@@ -15,14 +16,38 @@ class _SettingsSubscreenState extends State<SettingsSubscreen> {
       child: Center(
         child: SizedBox(
           width: 160,
-          height: 200,
+          height: 250,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              FlatButton(
+                onPressed: () {
+                  addLicenses();
+                  showAboutDialog(
+                    context: context,
+                    applicationName: "Freibad-App",
+                    applicationVersion: "1.0.0",
+                    applicationIcon: Image.asset(
+                      'assets/icon/swimming-pool.png',
+                      width: 40,
+                      height: 40,
+                    ),
+                    children: [
+                      Text(
+                        "Created by Ben Meyer-Meisel",
+                      ),
+                    ],
+                  );
+                },
+                child: Text(
+                  'More Info',
+                  style: TextStyle(color: Theme.of(context).primaryColor),
+                ),
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Freibad-Server"),
+                  Text('Freibad-Server'),
                   Switch.adaptive(
                     activeColor: Theme.of(context).primaryColor,
                     value: Provider.of<Settings>(context).useServer,
@@ -36,7 +61,7 @@ class _SettingsSubscreenState extends State<SettingsSubscreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("Weather-API"),
+                  Text('Weather-API'),
                   Switch.adaptive(
                     activeColor: Theme.of(context).primaryColor,
                     value: Provider.of<Settings>(context, listen: false)
