@@ -1,0 +1,18 @@
+{
+    "name": "Freibad",
+    "short_name": "Freibad",
+    "start_url": ".",
+    "display": "standalone",
+    "background_color": "#0175C2",
+    "theme_color": "#0175C2",
+    "description": "An app to reserve spots in a public swimming pool.",
+    "orientation": "portrait-primary",
+    "prefer_related_applications": false,
+    "icons": [
+        {
+            "src": "icons/swimming-pool.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
